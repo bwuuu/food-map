@@ -149,7 +149,7 @@ const foodData = [
         "sourceDetail": "same IG post (@foodie_account)",
         "status": "Not Tried",
         "inspirationLink": "https://www.instagram.com/p/DXMeLh4geME/",
-        "inspirationImage": "",
+        "inspirationImage": "./images/landed_screenshot.jpg",
         "whyTry": "Unique concept: 'ten natural wines to match a book.' Current selection pairs wines with Hermann Hesse's Siddhartha - love the contemplative vibe of 'reading a book by drinking'. Screenshot shows wine glass on open book with Chinese text.",
         "dishRecommendations": "10-wine flight paired with book themes. Featured pairing: 'Bluebeard' with French Alsace Pinot Noir. Ask about current book pairing.",
         "mood": "Sophisticated, contemplative, literary, intimate",
