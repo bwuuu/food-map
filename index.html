@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>My Food Map | Restaurant Tracker</title>
+    
+    <!-- Open Graph / Social Share -->
+    <meta property="og:title" content="My Food Map - Restaurant Tracker" />
+    <meta property="og:type" content="website" />
+    <meta property="og:description" content="Track and discover great restaurants with ratings and locations" />
+    <meta name="twitter:card" content="summary_large_image" />
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        html, body { height: 100%; background: #1a1a1a; color: #fff; }
+        
+        .header { 
+            padding: 15px; 
+            text-align: center; 
+            background: #2d2d2d; 
+            height: 80px; 
+        }
+        .header h1 { font-size: 22px; margin-bottom: 5px; }
+        .header p { font-size: 14px; opacity: 0.8; }
+        
+        #map { 
+            height: calc(100vh - 80px); 
+            width: 100%; 
+            position: relative; 
+            z-index: 1; 
+        }
+        
+        /* Toggle Buttons */
+        .toggle-btn {
+            position: fixed;
+            bottom: 20px; 
+            background: rgba(0,0,0,0.95);
+            color: #fff;
+            border: 2px solid #e63946;
+            border-radius: 50%; 
+            width: 50px;
+            height: 50px;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
+        }
+        .toggle-legend { left: 20px; }
+        .toggle-filter { right: 20px; }
+        .toggle-btn:hover { background: #e63946; border-color: #fff; }
+        
+        /* Legend Panel */
+        .legend {
+            position: fixed;
+            top: 50%;
+            left: 0;
+            transform: translate(-100%, -50%);
+            background: rgba(0,0,0,0.95);
+            padding: 20px;
+            border-radius: 0 15px 15px 0;
+            font-size: 14px;
+            z-index: 99998;
+            min-width: 240px;
+            transition: transform 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .legend.show { transform: translate(0, -50%); }
+        .legend h4 { margin-bottom: 15px; font-size: 16px; color: #e63946; }
+        .legend-item { display: flex; align-items: center; margin: 8px 0; }
+        .legend-color { width: 20px; height: 20px; margin-right: 10px; border-radius: 50%; }
+        
+        /* Filter Panel */
+        .filter-panel {
+            position: fixed;
+            top: 50%;
+            right: 0;
+            transform: translate(100%, -50%);
+            background: rgba(0,0,0,0.95);
+            padding: 20px;
+            border-radius: 15px 0 0 15px;
+            font-size: 14px;
+            z-index: 99998;
+            min-width: 280px;
+            max-height: 70vh;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .filter-panel.show { transform: translate(0, -50%); }
+        .filter-title { font-size: 16px; font-weight: bold; margin-bottom: 15px; color: #e63946; }
+        .rank-buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 15px; }
+        .rank-btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #fff;
+            opacity: 0.85;
+            transition: all 0.2s;
+        }
+        .rank-btn.active { opacity: 1; transform: scale(1.05); box-shadow: 0 0 8px rgba(230, 57, 70, 0.5); }
+        .area-buttons { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 6px; 
+            max-height: 150px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+        .area-btn {
+            padding: 5px 10px;
+            border: 1px solid #666;
+            background: #333;
+            color: #fff;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        .area-btn.active { background: #e63946; border-color: #fff; }
+        .reset-btn {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            background: #577590;
+            color: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .reset-btn:hover { background: #43aa8b; }
+        
+        /* Popup Styles */
+        .leaflet-popup-content { color: #333; width: 260px !important; }
+        .popup-title { font-weight: bold; font-size: 16px; margin-bottom: 8px; color: #e63946; }
+        .popup-info { font-size: 14px; margin: 5px 0; }
+        .popup-nav-btn {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 8px 15px;
+            color: #0066cc;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .popup-nav-btn:hover { color: #004c99; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🍔 My Food Map</h1>
+        <p>Discover and track your favorite restaurants</p>
+    </div>
+    
+    <div id="map"></div>
+    
+    <!-- Legend Toggle -->
+    <button class="toggle-btn toggle-legend" onclick="toggleLegend()">≡</button>
+    
+    <!-- Filter Toggle -->
+    <button class="toggle-btn toggle-filter" onclick="toggleFilter()">☰</button>
+    
+    <!-- Legend Panel -->
+    <div class="legend" id="legendPanel">
+        <h4>📊 Rating Tiers</h4>
+        <div class="legend-item"><div class="legend-color" style="background:#e63946;"></div>⭐⭐⭐⭐⭐ Must Try</div>
+        <div class="legend-item"><div class="legend-color" style="background:#f4a261;"></div>⭐⭐⭐⭐ Excellent</div>
+        <div class="legend-item"><div class="legend-color" style="background:#e9c46a;"></div>⭐⭐⭐ Good</div>
+        <div class="legend-item"><div class="legend-color" style="background:#a8dadc;"></div>⭐⭐ Average</div>
+        <div class="legend-item"><div class="legend-color" style="background:#457b9d;"></div>⭐ Below Average</div>
+        <div class="legend-item"><div class="legend-color" style="background:#6c757d;"></div>❌ Skip</div>
+    </div>
+    
+    <!-- Filter Panel -->
+    <div class="filter-panel" id="filterPanel">
+        <div class="filter-title">🔍 Filter Options</div>
+        <div style="margin-bottom:8px;font-size:12px;opacity:0.8;">Rating Tier</div>
+        <div class="rank-buttons">
+            <button class="rank-btn" style="background:#e63946;" onclick="toggleRank('T0')">T0 ⭐</button>
+            <button class="rank-btn" style="background:#f4a261;" onclick="toggleRank('T1')">T1 ⭐⭐</button>
+            <button class="rank-btn" style="background:#e9c46a;" onclick="toggleRank('T2')">T2 ⭐⭐⭐</button>
+            <button class="rank-btn" style="background:#a8dadc;" onclick="toggleRank('T3')">T3 ⭐⭐⭐⭐</button>
+            <button class="rank-btn" style="background:#457b9d;" onclick="toggleRank('T4')">T4 ⭐⭐⭐⭐⭐</button>
+            <button class="rank-btn" style="background:#6c757d;" onclick="toggleRank('T5')">T5 ⭐⭐⭐⭐⭐⭐</button>
+        </div>
+        <div style="margin-bottom:8px;font-size:12px;opacity:0.8;">Area / District</div>
+        <div class="area-buttons" id="areaButtons"></div>
+        <button class="reset-btn" onclick="resetFilters()">🔄 Reset All Filters</button>
+    </div>
+
+    <!-- Data & Map Script -->
+    <script src="data.js"></script>
+    <script>
+        // Map initialization
+        const map = L.map('map').setView([25.05, 121.55], 13);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/">CARTO</a>',
+            subdomains: 'abcd'
+        }).addTo(map);
+
+        // Reference tier colors
+        const tierColors = {
+            'T0': '#e63946',  // Must Try - Red
+            'T1': '#f4a261',  // Excellent - Orange
+            'T2': '#e9c46a',  // Good - Yellow
+            'T3': '#a8dadc',  // Average - Light Blue
+            'T4': '#457b9d',  // Below Average - Blue
+            'T5': '#6c757d',  // Skip - Gray
+            'T6': '#343a40'   // Not Rated - Dark Gray
+        };
+
+        // Track current filters
+        let activeRanks = new Set();
+        let activeAreas = new Set();
+        let markers = [];
+
+        // Initialize area buttons from data
+        function initAreaButtons() {
+            const areas = [...new Set(foodData.map(item => item.area))].sort();
+            const container = document.getElementById('areaButtons');
+            container.innerHTML = areas.map(area => 
+                `<button class="area-btn" onclick="toggleArea('${area}')">${area}</button>`
+            ).join('');
+        }
+
+        // Create markers
+        function createMarkers() {
+            // Clear existing markers
+            markers.forEach(m => map.removeLayer(m));
+            markers = [];
+
+            foodData.forEach(item => {
+                // Apply filters
+                if (activeRanks.size > 0 && !activeRanks.has(item.rank)) return;
+                if (activeAreas.size > 0 && !activeAreas.has(item.area)) return;
+
+                const color = tierColors[item.rank] || tierColors['T6'];
+                const marker = L.circleMarker([item.lat, item.lng], {
+                    radius: 10,
+                    fillColor: color,
+                    color: '#fff',
+                    weight: 2,
+                    opacity: 1,
+                    fillOpacity: 0.9
+                }).addTo(map);
+
+                const popupContent = `
+                    <div class="popup-title">${item.name}</div>
+                    <div class="popup-info">⭐ Rank: ${item.rank}</div>
+                    <div class="popup-info">📍 ${item.area}</div>
+                    <div class="popup-info">💰 ${item.price}</div>
+                    <div class="popup-info">🏷️ ${item.type}</div>
+                    <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.name + ' ' + item.address)}" 
+                       target="_blank" class="popup-nav-btn">🗺️ Open in Google Maps</a>
+                `;
+
+                marker.bindPopup(popupContent);
+                markers.push(marker);
+            });
+        }
+
+        // Toggle functions
+        function toggleRank(rank) {
+            if (activeRanks.has(rank)) {
+                activeRanks.delete(rank);
+            } else {
+                activeRanks.add(rank);
+            }
+            updateUI();
+            createMarkers();
+        }
+
+        function toggleArea(area) {
+            if (activeAreas.has(area)) {
+                activeAreas.delete(area);
+            } else {
+                activeAreas.add(area);
+            }
+            updateUI();
+            createMarkers();
+        }
+
+        function resetFilters() {
+            activeRanks.clear();
+            activeAreas.clear();
+            updateUI();
+            createMarkers();
+        }
+
+        function updateUI() {
+            // Update rank buttons
+            document.querySelectorAll('.rank-btn').forEach(btn => {
+                const rank = btn.textContent.split(' ')[0];
+                btn.classList.toggle('active', activeRanks.has(rank));
+            });
+            // Update area buttons
+            document.querySelectorAll('.area-btn').forEach(btn => {
+                btn.classList.toggle('active', activeAreas.has(btn.textContent));
+            });
+        }
+
+        // Panel toggles
+        function toggleLegend() {
+            document.getElementById('legendPanel').classList.toggle('show');
+            document.getElementById('filterPanel').classList.remove('show');
+        }
+
+        function toggleFilter() {
+            document.getElementById('filterPanel').classList.toggle('show');
+            document.getElementById('legendPanel').classList.remove('show');
+        }
+
+        // Initialize
+        initAreaButtons();
+        createMarkers();
+    </script>
+</body>
+</html>
