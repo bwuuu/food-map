@@ -132,6 +132,28 @@ const foodData = [
         "dishRecommendations": "Iron skillet Dutch baby pancake (鐵鍋寶貝鬆餅) with silk cheese and house-cured pork belly, paired with natural wine",
         "mood": "Morning energy boost with natural wine and European cuisine, Chill brunch vibes",
         "bestFor": "Weekend morning 08:00, Afternoon wine session until 21:00 on weekends"
+    },
+    {
+        "name": "landed (用一本書佐十杯酒)",
+        "rank": "T1",
+        "area": "Songshan District",
+        "address": "1F, No. 1, Alley 45, Lane 366, Section 2, Bade Rd, Songshan District, Taipei City, Taiwan 105",
+        "cuisine": "Natural Wine Bar / Literary Theme",
+        "type": "Wine Bar",
+        "price": "$600-1000 TWD",
+        "notes": "Concept wine bar: pair 10 natural wines with a book's themes. Female owner-operated. Hours: Sat 15:00-00:00, Mon/Sun 18:00-00:00 (Closed Tue). Phone: +886 2 2771 0331. IG: @landed.wine. Plus Code: 2GWW+HF. Current book: Hermann Hesse's 'Siddhartha' (流浪者之歌). Previous selection: 'Women Who Run with the Wolves'.",
+        "lat": 25.053,
+        "lng": 121.563,
+        "plusCode": "2GWW+HF Songshan District, Taipei City",
+        "source": "IG",
+        "sourceDetail": "same IG post (@foodie_account)",
+        "status": "Not Tried",
+        "inspirationLink": "https://www.instagram.com/p/DXMeLh4geME/",
+        "inspirationImage": "",
+        "whyTry": "Unique concept: 'ten natural wines to match a book.' Current selection pairs wines with Hermann Hesse's Siddhartha - love the contemplative vibe of 'reading a book by drinking'. Screenshot shows wine glass on open book with Chinese text.",
+        "dishRecommendations": "10-wine flight paired with book themes. Featured pairing: 'Bluebeard' with French Alsace Pinot Noir. Ask about current book pairing.",
+        "mood": "Sophisticated, contemplative, literary, intimate",
+        "bestFor": "Saturday afternoon book+wine session (15:00), Evening wine flights, Solo reading with wine"
     }
 ];
 
