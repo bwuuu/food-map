@@ -102,14 +102,14 @@ const foodData = [
         "lng": 121.4639,
         "plusCode": "2FC9+5F Banqiao District, New Taipei City",
         "source": "IG",
-        "sourceDetail": "@chiarataiwan",
+        "sourceDetail": "@foodie_account",
         "status": "Not Tried",
-        "inspirationLink": "https://www.instagram.com/chiarataiwan/",
+        "inspirationLink": "https://www.instagram.com/p/DXMeLh4geME/",
         "inspirationImage": "",
-        "whyTry": "Authentic Italian home cooking in Taipei",
-        "dishRecommendations": "Fresh pasta, tiramisu, daily specials",
-        "mood": "Cozy dinner, Family meal",
-        "bestFor": "Lunch, Dinner"
+        "whyTry": "Discovered on IG - looks amazing! Need to check the dish details",
+        "dishRecommendations": "Check the IG post for recommended dishes",
+        "mood": "TBD",
+        "bestFor": "TBD"
     }
 ];
 
