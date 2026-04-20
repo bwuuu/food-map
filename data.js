@@ -113,13 +113,13 @@ const foodData = [
     },
     {
         "name": "芮秋 Rachel",
-        "rank": "T0",
+        "rank": "T1",
         "area": "Songshan District",
         "address": "No. 405號, Fujin St, Songshan District, Taipei City, Taiwan 105",
-        "cuisine": "Brunch / Cafe",
+        "cuisine": "European Brunch / Natural Wine",
         "type": "Brunch Restaurant",
-        "price": "$300-500 TWD",
-        "notes": "Popular brunch spot in Minsheng Community. Opens at 9:00. Phone: +886 2 2760 0182. Line: @689elaci. Plus Code: 3H66+83",
+        "price": "$400-600 TWD",
+        "notes": "Minsheng Community natural wine brunch spot. Hours: Mon-Fri 09:00-17:00, Sat-Sun 08:00-21:00. Phone: +886 2 2760 0182. Line: @689elaci. Plus Code: 3H66+83. Founder team from 立秋餐酒館, head chef with 10+ years Taiwanese Western cuisine experience.",
         "lat": 25.0608,
         "lng": 121.5602,
         "plusCode": "3H66+83 Songshan District, Taipei City",
@@ -127,11 +127,11 @@ const foodData = [
         "sourceDetail": "@foodie_account (same post)",
         "status": "Not Tried",
         "inspirationLink": "https://www.instagram.com/p/DXMeLh4geME/",
-        "inspirationImage": "",
-        "whyTry": "Same IG post mentioned this - natural wine + brunch combo sounds interesting",
-        "dishRecommendations": "Brunch plates, natural wine, coffee",
-        "mood": "Lazy Sunday, Wine brunch, Chill vibes",
-        "bestFor": "Sunday brunch, Afternoon wine"
+        "inspirationImage": "./images/rachel_screenshot.jpg",
+        "whyTry": "Screenshot shows their signature iron skillet Dutch baby pancake - took nearly a year to perfect, with crispy edges and fluffy center with egg aroma, topped with slow-cooked silk cheese and house-cured pork belly",
+        "dishRecommendations": "Iron skillet Dutch baby pancake (鐵鍋寶貝鬆餅) with silk cheese and house-cured pork belly, paired with natural wine",
+        "mood": "Morning energy boost with natural wine and European cuisine, Chill brunch vibes",
+        "bestFor": "Weekend morning 08:00, Afternoon wine session until 21:00 on weekends"
     }
 ];
 
