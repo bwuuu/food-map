@@ -39,34 +39,6 @@ const foodData = [
         "lat": 25.0286,
         "lng": 121.4998,
         "plusCode": "2FJV+86 Wanhua District, Taipei City"
-    },
-    
-    // ===== TIER 1: Excellent =====
-    {
-        "name": "Sample Restaurant - T1",
-        "rank": "T1",
-        "area": "Da'an District",
-        "address": "123 Main St, Taipei",
-        "cuisine": "Italian",
-        "type": "Casual",
-        "price": "$300-500 TWD",
-        "notes": "Great pasta, cozy atmosphere",
-        "lat": 25.0330,
-        "lng": 121.5654
-    },
-    
-    // ===== TIER 2: Good =====
-    {
-        "name": "Sample Restaurant - T2",
-        "rank": "T2",
-        "area": "Xinyi District",
-        "address": "456 Oak Ave, Taipei",
-        "cuisine": "Japanese",
-        "type": "Ramen",
-        "price": "$200-300 TWD",
-        "notes": "Good ramen, quick service",
-        "lat": 25.0410,
-        "lng": 121.5500
     }
 ];
 
