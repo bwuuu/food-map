@@ -39,6 +39,19 @@ const foodData = [
         "lat": 25.0286,
         "lng": 121.4998,
         "plusCode": "2FJV+86 Wanhua District, Taipei City"
+    },
+    {
+        "name": "至せい-shisei-至誠 Taipei",
+        "rank": "T0",
+        "area": "Zhongshan District",
+        "address": "No. 42號, Tianxiang Rd, Zhongshan District, Taipei City, Taiwan 10491",
+        "cuisine": "Japanese",
+        "type": "Izakaya",
+        "price": "$400-800 TWD",
+        "notes": "Japanese izakaya. Opens at 18:00. Phone: +886 2 2521 1700. Website: shisei-taipei.com. Plus Code: 3G6C+J9. LGBTQ Friendly.",
+        "lat": 25.0657,
+        "lng": 121.5346,
+        "plusCode": "3G6C+J9 Zhongshan District, Taipei City"
     }
 ];
 
