@@ -52,6 +52,19 @@ const foodData = [
         "lat": 25.0657,
         "lng": 121.5346,
         "plusCode": "3G6C+J9 Zhongshan District, Taipei City"
+    },
+    {
+        "name": "Chiara 義式料理",
+        "rank": "T0",
+        "area": "Banqiao District",
+        "address": "No. 38, 1F, Alley 3, Lane 270, Section 1, Wenhua Rd, Banqiao District, New Taipei City, Taiwan 22041",
+        "cuisine": "Italian",
+        "type": "Italian Restaurant",
+        "price": "$400-800 TWD",
+        "notes": "Authentic Italian cuisine. Opens at 11:30. Phone: +886 2 2249 8479. Instagram: @chiarataiwan. Plus Code: 2FC9+5F",
+        "lat": 25.0084,
+        "lng": 121.4639,
+        "plusCode": "2FC9+5F Banqiao District, New Taipei City"
     }
 ];
 
