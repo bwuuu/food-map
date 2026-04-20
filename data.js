@@ -106,10 +106,32 @@ const foodData = [
         "status": "Not Tried",
         "inspirationLink": "https://www.instagram.com/p/DXMeLh4geME/",
         "inspirationImage": "",
-        "whyTry": "Discovered on IG - looks amazing! Need to check the dish details",
-        "dishRecommendations": "Check the IG post for recommended dishes",
-        "mood": "TBD",
-        "bestFor": "TBD"
+        "whyTry": "From the same IG post that mentioned other spots - looks like a cozy brunch place in Songshan",
+        "dishRecommendations": "Brunch items, coffee - need to check the post again for specifics",
+        "mood": "Brunch, Weekend morning, Casual hangout",
+        "bestFor": "Weekend brunch, Late morning"
+    },
+    {
+        "name": "芮秋 Rachel",
+        "rank": "T0",
+        "area": "Songshan District",
+        "address": "No. 405號, Fujin St, Songshan District, Taipei City, Taiwan 105",
+        "cuisine": "Brunch / Cafe",
+        "type": "Brunch Restaurant",
+        "price": "$300-500 TWD",
+        "notes": "Popular brunch spot in Minsheng Community. Opens at 9:00. Phone: +886 2 2760 0182. Line: @689elaci. Plus Code: 3H66+83",
+        "lat": 25.0608,
+        "lng": 121.5602,
+        "plusCode": "3H66+83 Songshan District, Taipei City",
+        "source": "IG",
+        "sourceDetail": "@foodie_account (same post)",
+        "status": "Not Tried",
+        "inspirationLink": "https://www.instagram.com/p/DXMeLh4geME/",
+        "inspirationImage": "",
+        "whyTry": "Same IG post mentioned this - natural wine + brunch combo sounds interesting",
+        "dishRecommendations": "Brunch plates, natural wine, coffee",
+        "mood": "Lazy Sunday, Wine brunch, Chill vibes",
+        "bestFor": "Sunday brunch, Afternoon wine"
     }
 ];
 
