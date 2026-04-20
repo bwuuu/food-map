@@ -15,7 +15,13 @@ const foodData = [
         "plusCode": "3G2F+8C Zhongshan District, Taipei City",
         "source": "IG",
         "sourceDetail": "@foodie_account",
-        "status": "Not Tried"
+        "status": "Not Tried",
+        "inspirationLink": "",
+        "inspirationImage": "",
+        "whyTry": "Cozy izakaya vibe with handmade soba",
+        "dishRecommendations": "Cold soba with dipping sauce, tempura",
+        "mood": "Date night, Intimate dinner",
+        "bestFor": "Dinner, Weekend"
     },
     {
         "name": "萬大蟹殼黃、胡椒餅",
@@ -31,7 +37,13 @@ const foodData = [
         "plusCode": "2GH2+R4 Wanhua District, Taipei City",
         "source": "Friend",
         "sourceDetail": "小明",
-        "status": "Not Tried"
+        "status": "Not Tried",
+        "inspirationLink": "",
+        "inspirationImage": "",
+        "whyTry": "Traditional Taiwanese street snack",
+        "dishRecommendations": "Crab shell yellow cake, pepper bun",
+        "mood": "Quick bite, Take away",
+        "bestFor": "Breakfast, Snack"
     },
     {
         "name": "阿伯蛋包面 (A-Bo Egg Noodle)",
@@ -47,7 +59,13 @@ const foodData = [
         "plusCode": "2FJV+86 Wanhua District, Taipei City",
         "source": "IG",
         "sourceDetail": "@taipei_food",
-        "status": "Not Tried"
+        "status": "Not Tried",
+        "inspirationLink": "",
+        "inspirationImage": "",
+        "whyTry": "Famous egg-wrapped noodles, people queue for this",
+        "dishRecommendations": "Egg wrapped noodles, chili sauce",
+        "mood": "Casual, Quick lunch",
+        "bestFor": "Lunch, Early afternoon"
     },
     {
         "name": "至せい-shisei-至誠 Taipei",
@@ -63,7 +81,13 @@ const foodData = [
         "plusCode": "3G6C+J9 Zhongshan District, Taipei City",
         "source": "Magazine",
         "sourceDetail": "食尚玩家",
-        "status": "Not Tried"
+        "status": "Not Tried",
+        "inspirationLink": "",
+        "inspirationImage": "",
+        "whyTry": "Authentic Japanese izakaya experience, LGBTQ friendly",
+        "dishRecommendations": "Grilled skewers, sake selection, seasonal dishes",
+        "mood": "Date night, Group dinner, Celebrations",
+        "bestFor": "Dinner, Late night"
     },
     {
         "name": "Chiara 義式料理",
@@ -79,7 +103,13 @@ const foodData = [
         "plusCode": "2FC9+5F Banqiao District, New Taipei City",
         "source": "IG",
         "sourceDetail": "@chiarataiwan",
-        "status": "Not Tried"
+        "status": "Not Tried",
+        "inspirationLink": "https://www.instagram.com/chiarataiwan/",
+        "inspirationImage": "",
+        "whyTry": "Authentic Italian home cooking in Taipei",
+        "dishRecommendations": "Fresh pasta, tiramisu, daily specials",
+        "mood": "Cozy dinner, Family meal",
+        "bestFor": "Lunch, Dinner"
     }
 ];
 
@@ -100,7 +130,15 @@ TEMPLATE for adding new restaurants:
     "plusCode": "Plus Code (optional)",
     "source": "IG/Friend/Blog/Magazine/Random",  // Where you discovered it
     "sourceDetail": "@instagram_handle or friend's name",  // Specific account or person
-    "status": "Not Tried"  // Not Tried, Tried, Want to Return
+    "status": "Not Tried",  // Not Tried, Tried, Want to Return
+    
+    // NEW: Rich Context Fields (what GMaps doesn't store!)
+    "inspirationLink": "https://instagram.com/p/XXXXX",  // Link to IG post/blog that inspired you
+    "inspirationImage": "./images/restaurant_screenshot.jpg",  // Screenshot or saved image (optional)
+    "whyTry": "What caught your eye - the vibe? A specific dish? The decor?",  // WHY you saved it
+    "dishRecommendations": "Specific dishes to order based on source post",  // What to order
+    "mood": "Date night, Casual hangout, Solo dining, Group celebration",  // Best occasions
+    "bestFor": "Lunch, Dinner, Weekend brunch, Late night"  // Best timing
 }
 
 SOURCES:
@@ -115,9 +153,13 @@ STATUS:
 - Tried = Already visited
 - Want to Return = Loved it, want to go back
 
-To find coordinates:
-1. Go to https://maps.google.com
-2. Find your restaurant
-3. Right-click → "What's here?" → copy coordinates
-4. Or use: https://www.gps-coordinates.org/
+NEW CONTEXT FIELDS:
+- inspirationLink: Save the exact IG post, blog link, or article that inspired you
+- inspirationImage: Screenshot or photo that shows why you want to try it
+- whyTry: Your personal note about what caught your attention
+- dishRecommendations: Specific dishes mentioned in the source
+- mood: What kind of occasion is this place good for
+- bestFor: Best time to visit (lunch vs dinner, weekday vs weekend)
+
+This solves the GMaps problem: "I saved it but forgot why"
 */

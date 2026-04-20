@@ -143,19 +143,69 @@
         .reset-btn:hover { background: #43aa8b; }
         
         /* Popup Styles */
-        .leaflet-popup-content { color: #333; width: 260px !important; }
-        .popup-title { font-weight: bold; font-size: 16px; margin-bottom: 8px; color: #e63946; }
+        .leaflet-popup-content { color: #333; width: 320px !important; max-height: 400px; overflow-y: auto; }
+        .popup-title { font-weight: bold; font-size: 16px; margin-bottom: 10px; color: #e63946; border-bottom: 2px solid #e63946; padding-bottom: 8px; }
         .popup-info { font-size: 14px; margin: 5px 0; }
-        .popup-nav-btn {
+        
+        .popup-section { margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #eee; }
+        .popup-section:last-of-type { border-bottom: none; }
+        
+        .popup-badges { display: flex; gap: 8px; margin-bottom: 8px; }
+        .badge { 
+            padding: 4px 10px; 
+            border-radius: 12px; 
+            font-size: 12px; 
+            font-weight: bold;
+            color: #fff;
+        }
+        .badge.status { background: #666; }
+        .badge.priority { text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+        
+        .popup-label { 
+            font-weight: bold; 
+            font-size: 13px; 
+            color: #666; 
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .popup-context { 
+            font-size: 14px; 
+            line-height: 1.5; 
+            color: #333;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            border-left: 3px solid #e63946;
+        }
+        
+        .popup-info.source { background: #fff3cd; padding: 8px; border-radius: 6px; margin: 8px 0; }
+        
+        .inspiration-link {
             display: inline-block;
-            margin-top: 10px;
-            padding: 8px 15px;
+            margin-left: 8px;
             color: #0066cc;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: bold;
+        }
+        .inspiration-link:hover { color: #004c99; text-decoration: underline; }
+        
+        .popup-nav-btn {
+            display: block;
+            margin-top: 12px;
+            padding: 10px 15px;
+            background: #e63946;
+            color: #fff;
             text-decoration: none;
             font-weight: bold;
             font-size: 14px;
+            text-align: center;
+            border-radius: 6px;
+            transition: background 0.2s;
         }
-        .popup-nav-btn:hover { color: #004c99; }
+        .popup-nav-btn:hover { background: #d62828; }
     </style>
 </head>
 <body>
@@ -294,12 +344,54 @@
 
                 const popupContent = `
                     <div class="popup-title">${item.name}</div>
-                    <div class="popup-info">${statusIcons[item.status] || '🔜'} ${item.status}</div>
-                    <div class="popup-info">${sourceIcons[item.source] || '📍'} Source: ${item.source}${item.sourceDetail ? ' (' + item.sourceDetail + ')' : ''}</div>
-                    <div class="popup-info">🏷️ ${item.cuisine} · ${item.type}</div>
-                    <div class="popup-info">📍 ${item.area}</div>
-                    <div class="popup-info">💰 ${item.price}</div>
-                    ${item.notes ? '<div class="popup-info">📝 ' + item.notes + '</div>' : ''}
+                    
+                    <!-- Status & Priority -->
+                    <div class="popup-section">
+                        <div class="popup-badges">
+                            <span class="badge status">${statusIcons[item.status] || '🔜'} ${item.status}</span>
+                            <span class="badge priority" style="background:${color}">${item.rank}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Source Context - The key differentiator! -->
+                    <div class="popup-section">
+                        <div class="popup-info source">
+                            ${sourceIcons[item.source] || '📍'} <strong>Discovered via:</strong> ${item.source}
+                            ${item.sourceDetail ? ` (${item.sourceDetail})` : ''}
+                            ${item.inspirationLink ? `<a href="${item.inspirationLink}" target="_blank" class="inspiration-link">🔗 See Inspiration</a>` : ''}
+                        </div>
+                    </div>
+                    
+                    <!-- Why Try - The motivation! -->
+                    ${item.whyTry ? `
+                    <div class="popup-section">
+                        <div class="popup-label">✨ Why try it:</div>
+                        <div class="popup-context">${item.whyTry}</div>
+                    </div>` : ''}
+                    
+                    <!-- Dish Recommendations -->
+                    ${item.dishRecommendations ? `
+                    <div class="popup-section">
+                        <div class="popup-label">🍽️ What to order:</div>
+                        <div class="popup-context">${item.dishRecommendations}</div>
+                    </div>` : ''}
+                    
+                    <!-- Mood & Best For -->
+                    ${(item.mood || item.bestFor) ? `
+                    <div class="popup-section">
+                        ${item.mood ? `<div class="popup-info">🎭 <strong>Mood:</strong> ${item.mood}</div>` : ''}
+                        ${item.bestFor ? `<div class="popup-info">⏰ <strong>Best for:</strong> ${item.bestFor}</div>` : ''}
+                    </div>` : ''}
+                    
+                    <!-- Basic Info -->
+                    <div class="popup-section">
+                        <div class="popup-info">🏷️ ${item.cuisine} · ${item.type}</div>
+                        <div class="popup-info">📍 ${item.area}</div>
+                        <div class="popup-info">💰 ${item.price}</div>
+                        ${item.notes ? '<div class="popup-info">📝 ' + item.notes + '</div>' : ''}
+                    </div>
+                    
+                    <!-- Navigation -->
                     <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.name + ' ' + item.address)}" 
                        target="_blank" class="popup-nav-btn">🗺️ Open in Google Maps</a>
                 `;
