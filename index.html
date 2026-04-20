@@ -174,13 +174,25 @@
     
     <!-- Legend Panel -->
     <div class="legend" id="legendPanel">
-        <h4>📊 Rating Tiers</h4>
-        <div class="legend-item"><div class="legend-color" style="background:#e63946;"></div>⭐⭐⭐⭐⭐ Must Try</div>
-        <div class="legend-item"><div class="legend-color" style="background:#f4a261;"></div>⭐⭐⭐⭐ Excellent</div>
-        <div class="legend-item"><div class="legend-color" style="background:#e9c46a;"></div>⭐⭐⭐ Good</div>
-        <div class="legend-item"><div class="legend-color" style="background:#a8dadc;"></div>⭐⭐ Average</div>
-        <div class="legend-item"><div class="legend-color" style="background:#457b9d;"></div>⭐ Below Average</div>
-        <div class="legend-item"><div class="legend-color" style="background:#6c757d;"></div>❌ Skip</div>
+        <h4>📊 Priority Tiers</h4>
+        <div class="legend-item"><div class="legend-color" style="background:#e63946;"></div>T0 🔴 Must Try</div>
+        <div class="legend-item"><div class="legend-color" style="background:#f4a261;"></div>T1 🟠 Highly Rec</div>
+        <div class="legend-item"><div class="legend-color" style="background:#e9c46a;"></div>T2 🟡 Interested</div>
+        <div class="legend-item"><div class="legend-color" style="background:#a8dadc;"></div>T3 🔵 Maybe Later</div>
+        <div class="legend-item"><div class="legend-color" style="background:#457b9d;"></div>T4 ⚪ Low Priority</div>
+        <div class="legend-item"><div class="legend-color" style="background:#6c757d;"></div>T5 ⚫ Skip</div>
+        <hr style="margin:15px 0;border-color:#444;">
+        <h4>📱 Source Icons</h4>
+        <div class="legend-item">📱 Instagram</div>
+        <div class="legend-item">👥 Friend</div>
+        <div class="legend-item">📝 Blog</div>
+        <div class="legend-item">📺 Magazine/TV</div>
+        <div class="legend-item">🎲 Random</div>
+        <hr style="margin:15px 0;border-color:#444;">
+        <h4>✅ Status</h4>
+        <div class="legend-item">🔜 Not Tried</div>
+        <div class="legend-item">✅ Tried</div>
+        <div class="legend-item">⭐ Want to Return</div>
     </div>
     
     <!-- Filter Panel -->
@@ -210,15 +222,39 @@
             subdomains: 'abcd'
         }).addTo(map);
 
-        // Reference tier colors
+        // Reference tier colors and meanings
         const tierColors = {
             'T0': '#e63946',  // Must Try - Red
-            'T1': '#f4a261',  // Excellent - Orange
-            'T2': '#e9c46a',  // Good - Yellow
-            'T3': '#a8dadc',  // Average - Light Blue
-            'T4': '#457b9d',  // Below Average - Blue
-            'T5': '#6c757d',  // Skip - Gray
-            'T6': '#343a40'   // Not Rated - Dark Gray
+            'T1': '#f4a261',  // Highly Recommended - Orange
+            'T2': '#e9c46a',  // Interested - Yellow
+            'T3': '#a8dadc',  // Maybe Later - Light Blue
+            'T4': '#457b9d',  // Low Priority - Blue
+            'T5': '#6c757d'   // Skip - Gray
+        };
+
+        const tierLabels = {
+            'T0': 'Must Try',
+            'T1': 'Highly Rec',
+            'T2': 'Interested',
+            'T3': 'Maybe Later',
+            'T4': 'Low Priority',
+            'T5': 'Skip'
+        };
+
+        // Source icon mapping
+        const sourceIcons = {
+            'IG': '📱',
+            'Friend': '👥',
+            'Blog': '📝',
+            'Magazine': '📺',
+            'Random': '🎲'
+        };
+
+        // Status icon mapping
+        const statusIcons = {
+            'Not Tried': '🔜',
+            'Tried': '✅',
+            'Want to Return': '⭐'
         };
 
         // Track current filters
@@ -258,10 +294,12 @@
 
                 const popupContent = `
                     <div class="popup-title">${item.name}</div>
-                    <div class="popup-info">⭐ Rank: ${item.rank}</div>
+                    <div class="popup-info">${statusIcons[item.status] || '🔜'} ${item.status}</div>
+                    <div class="popup-info">${sourceIcons[item.source] || '📍'} Source: ${item.source}${item.sourceDetail ? ' (' + item.sourceDetail + ')' : ''}</div>
+                    <div class="popup-info">🏷️ ${item.cuisine} · ${item.type}</div>
                     <div class="popup-info">📍 ${item.area}</div>
                     <div class="popup-info">💰 ${item.price}</div>
-                    <div class="popup-info">🏷️ ${item.type}</div>
+                    ${item.notes ? '<div class="popup-info">📝 ' + item.notes + '</div>' : ''}
                     <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.name + ' ' + item.address)}" 
                        target="_blank" class="popup-nav-btn">🗺️ Open in Google Maps</a>
                 `;

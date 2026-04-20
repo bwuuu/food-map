@@ -1,6 +1,6 @@
 // Restaurant Data - Add your own restaurants here!
 const foodData = [
-    // ===== TIER 0: Must Try =====
+    // ===== MUST TRY =====
     {
         "name": "手工蕎麥麵 蕎菜",
         "rank": "T0",
@@ -12,7 +12,10 @@ const foodData = [
         "notes": "Authentic handmade soba, opens at 18:00. Must try their soba! Phone: +886 2 2541 9992",
         "lat": 25.0623,
         "lng": 121.5235,
-        "plusCode": "3G2F+8C Zhongshan District, Taipei City"
+        "plusCode": "3G2F+8C Zhongshan District, Taipei City",
+        "source": "IG",
+        "sourceDetail": "@foodie_account",
+        "status": "Not Tried"
     },
     {
         "name": "萬大蟹殼黃、胡椒餅",
@@ -25,7 +28,10 @@ const foodData = [
         "notes": "Popular crab shell yellow cakes and pepper buns. Opens at 9:30. Phone: +886 2 2336 6063. Plus Code: 2GH2+R4",
         "lat": 25.0256,
         "lng": 121.4998,
-        "plusCode": "2GH2+R4 Wanhua District, Taipei City"
+        "plusCode": "2GH2+R4 Wanhua District, Taipei City",
+        "source": "Friend",
+        "sourceDetail": "小明",
+        "status": "Not Tried"
     },
     {
         "name": "阿伯蛋包面 (A-Bo Egg Noodle)",
@@ -38,7 +44,10 @@ const foodData = [
         "notes": "Famous egg noodle shop. Open until 14:00. Phone: +886 2 2338 1439. Facebook: cuxi0517. Plus Code: 2FJV+86",
         "lat": 25.0286,
         "lng": 121.4998,
-        "plusCode": "2FJV+86 Wanhua District, Taipei City"
+        "plusCode": "2FJV+86 Wanhua District, Taipei City",
+        "source": "IG",
+        "sourceDetail": "@taipei_food",
+        "status": "Not Tried"
     },
     {
         "name": "至せい-shisei-至誠 Taipei",
@@ -51,7 +60,10 @@ const foodData = [
         "notes": "Japanese izakaya. Opens at 18:00. Phone: +886 2 2521 1700. Website: shisei-taipei.com. Plus Code: 3G6C+J9. LGBTQ Friendly.",
         "lat": 25.0657,
         "lng": 121.5346,
-        "plusCode": "3G6C+J9 Zhongshan District, Taipei City"
+        "plusCode": "3G6C+J9 Zhongshan District, Taipei City",
+        "source": "Magazine",
+        "sourceDetail": "食尚玩家",
+        "status": "Not Tried"
     },
     {
         "name": "Chiara 義式料理",
@@ -64,7 +76,10 @@ const foodData = [
         "notes": "Authentic Italian cuisine. Opens at 11:30. Phone: +886 2 2249 8479. Instagram: @chiarataiwan. Plus Code: 2FC9+5F",
         "lat": 25.0084,
         "lng": 121.4639,
-        "plusCode": "2FC9+5F Banqiao District, New Taipei City"
+        "plusCode": "2FC9+5F Banqiao District, New Taipei City",
+        "source": "IG",
+        "sourceDetail": "@chiarataiwan",
+        "status": "Not Tried"
     }
 ];
 
@@ -73,17 +88,32 @@ TEMPLATE for adding new restaurants:
 
 {
     "name": "Restaurant Name",
-    "rank": "T0", // T0=Must Try, T1=Excellent, T2=Good, T3=Average, T4=Below Average, T5=Skip
+    "rank": "T0", // T0=Must Try, T1=Highly Recommended, T2=Interested, T3=Maybe Later
     "area": "District/Neighborhood",
     "address": "Full address for Google Maps",
     "cuisine": "Cuisine type",
     "type": "Dining style",
     "price": "Price range",
-    "notes": "Personal notes",
+    "notes": "Personal notes, hours, phone, etc.",
     "lat": 25.0330,  // Latitude - find on Google Maps
     "lng": 121.5654, // Longitude - find on Google Maps
-    "plusCode": "Plus Code (optional)"
+    "plusCode": "Plus Code (optional)",
+    "source": "IG/Friend/Blog/Magazine/Random",  // Where you discovered it
+    "sourceDetail": "@instagram_handle or friend's name",  // Specific account or person
+    "status": "Not Tried"  // Not Tried, Tried, Want to Return
 }
+
+SOURCES:
+- IG = Instagram
+- Friend = Friend recommendation
+- Blog = Food blog
+- Magazine = TV show or magazine
+- Random = Random discovery
+
+STATUS:
+- Not Tried = Haven't been yet
+- Tried = Already visited
+- Want to Return = Loved it, want to go back
 
 To find coordinates:
 1. Go to https://maps.google.com
