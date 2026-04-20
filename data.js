@@ -14,6 +14,32 @@ const foodData = [
         "lng": 121.5235,
         "plusCode": "3G2F+8C Zhongshan District, Taipei City"
     },
+    {
+        "name": "萬大蟹殼黃、胡椒餅",
+        "rank": "T0",
+        "area": "Wanhua District",
+        "address": "No. 124, Wanda Rd, Wanhua District, Taipei City, Taiwan 108",
+        "cuisine": "Taiwanese",
+        "type": "Street Food / Snack",
+        "price": "$50-100 TWD",
+        "notes": "Popular crab shell yellow cakes and pepper buns. Opens at 9:30. Phone: +886 2 2336 6063. Plus Code: 2GH2+R4",
+        "lat": 25.0256,
+        "lng": 121.4998,
+        "plusCode": "2GH2+R4 Wanhua District, Taipei City"
+    },
+    {
+        "name": "阿伯蛋包面 (A-Bo Egg Noodle)",
+        "rank": "T0",
+        "area": "Wanhua District",
+        "address": "No. 88, Shuangyuan St, Wanhua District, Taipei City, Taiwan 108",
+        "cuisine": "Taiwanese",
+        "type": "Noodle Shop",
+        "price": "$100-200 TWD",
+        "notes": "Famous egg noodle shop. Open until 14:00. Phone: +886 2 2338 1439. Facebook: cuxi0517. Plus Code: 2FJV+86",
+        "lat": 25.0286,
+        "lng": 121.4998,
+        "plusCode": "2FJV+86 Wanhua District, Taipei City"
+    },
     
     // ===== TIER 1: Excellent =====
     {
