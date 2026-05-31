@@ -250,12 +250,12 @@
         <div class="filter-title">🔍 Filter Options</div>
         <div style="margin-bottom:8px;font-size:12px;opacity:0.8;">Rating Tier</div>
         <div class="rank-buttons">
-            <button class="rank-btn" style="background:#e63946;" onclick="toggleRank('T0')">T0 ⭐</button>
-            <button class="rank-btn" style="background:#f4a261;" onclick="toggleRank('T1')">T1 ⭐⭐</button>
-            <button class="rank-btn" style="background:#e9c46a;" onclick="toggleRank('T2')">T2 ⭐⭐⭐</button>
-            <button class="rank-btn" style="background:#a8dadc;" onclick="toggleRank('T3')">T3 ⭐⭐⭐⭐</button>
-            <button class="rank-btn" style="background:#457b9d;" onclick="toggleRank('T4')">T4 ⭐⭐⭐⭐⭐</button>
-            <button class="rank-btn" style="background:#6c757d;" onclick="toggleRank('T5')">T5 ⭐⭐⭐⭐⭐⭐</button>
+            <button class="rank-btn" style="background:#e63946;" onclick="toggleRank('T0')">T0 🔴</button>
+            <button class="rank-btn" style="background:#f4a261;" onclick="toggleRank('T1')">T1 🟠</button>
+            <button class="rank-btn" style="background:#e9c46a;" onclick="toggleRank('T2')">T2 🟡</button>
+            <button class="rank-btn" style="background:#a8dadc;" onclick="toggleRank('T3')">T3 🔵</button>
+            <button class="rank-btn" style="background:#457b9d;" onclick="toggleRank('T4')">T4 ⚪</button>
+            <button class="rank-btn" style="background:#6c757d;" onclick="toggleRank('T5')">T5 ⚫</button>
         </div>
         <div style="margin-bottom:8px;font-size:12px;opacity:0.8;">Area / District</div>
         <div class="area-buttons" id="areaButtons"></div>
@@ -263,8 +263,15 @@
     </div>
 
     <!-- Data & Map Script -->
-    <script src="data.js"></script>
+    <script src="data.js" onerror="document.body.innerHTML='<div style=padding:40px;text-align:center;font-family:sans-serif><h2>Map Error</h2><p>Could not load data.js. Check console for details.</p></div>'"></script>
     <script>
+        // Error handling: bail gracefully if data.js failed to load
+        if (typeof foodData === 'undefined' || !Array.isArray(foodData)) {
+            console.error('food-data-error: data.js not loaded or malformed');
+            document.getElementById('map').innerHTML = '<div style="padding:40px;text-align:center;font-family:sans-serif;color:#fff"><h2>Map Data Error</h2><p>Could not load restaurant data. Please check data.js is valid.</p></div>';
+            throw new Error('foodData is not defined');
+        }
+
         // Map initialization
         const map = L.map('map').setView([25.05, 121.55], 13);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
@@ -332,7 +339,7 @@
                 if (activeRanks.size > 0 && !activeRanks.has(item.rank)) return;
                 if (activeAreas.size > 0 && !activeAreas.has(item.area)) return;
 
-                const color = tierColors[item.rank] || tierColors['T6'];
+                const color = tierColors[item.rank] || '#999999';
                 const marker = L.circleMarker([item.lat, item.lng], {
                     radius: 10,
                     fillColor: color,
@@ -358,8 +365,12 @@
                         <div class="popup-info source">
                             ${sourceIcons[item.source] || '📍'} <strong>Discovered via:</strong> ${item.source}
                             ${item.sourceDetail ? ` (${item.sourceDetail})` : ''}
-                            ${item.inspirationLink ? `<a href="${item.inspirationLink}" target="_blank" class="inspiration-link">🔗 See Inspiration</a>` : ''}
+                            ${item.inspirationLink ? `<a href="${item.inspirationLink}" target="_blank" rel="noopener noreferrer" class="inspiration-link">🔗 See Inspiration</a>` : ''}
                         </div>
+                        ${item.inspirationImage ? `
+                        <div style="margin-top:10px">
+                            <img src="${item.inspirationImage}" alt="${item.name}" style="width:100%;border-radius:8px;max-height:200px;object-fit:cover;" loading="lazy">
+                        </div>` : ''}
                     </div>
                     
                     <!-- Why Try - The motivation! -->
@@ -392,8 +403,8 @@
                     </div>
                     
                     <!-- Navigation -->
-                    <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.name + ' ' + item.address)}" 
-                       target="_blank" class="popup-nav-btn">🗺️ Open in Google Maps</a>
+                    <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.name + ' ' + item.address)}"
+                       target="_blank" rel="noopener noreferrer" class="popup-nav-btn">🗺️ Open in Google Maps</a>
                 `;
 
                 marker.bindPopup(popupContent);
