@@ -1,0 +1,203 @@
+[
+  {
+    "id": "p_17031385",
+    "name": "手工蕎麥麵 蕎菜",
+    "lat": 25.0623,
+    "lng": 121.5235,
+    "address": "No. 15-2號, Lane 105, Section 1, Zhongshan N Rd, Zhongshan District, Taipei City, 10491",
+    "area": "Zhongshan District",
+    "googlePlaceId": null,
+    "category": "Izakaya",
+    "cuisine": "Japanese",
+    "price": "$400-600 TWD",
+    "why": "Cozy izakaya vibe with handmade soba",
+    "dishes": [
+      "Cold soba with dipping sauce",
+      "Tempura"
+    ],
+    "sources": [
+      {
+        "type": "ig",
+        "url": null,
+        "image": null,
+        "author": "@foodie_account",
+        "savedAt": "2026-04-20"
+      }
+    ],
+    "status": "want",
+    "rank": "T0",
+    "notes": "Authentic handmade soba, opens at 18:00. Must try their soba! Phone: +886 2 2541 9992. Mood: Date night, Intimate dinner. Best for: Dinner, Weekend."
+  },
+  {
+    "id": "p_65125561",
+    "name": "萬大蟹殼黃、胡椒餅",
+    "lat": 25.0256,
+    "lng": 121.4998,
+    "address": "No. 124, Wanda Rd, Wanhua District, Taipei City, Taiwan 108",
+    "area": "Wanhua District",
+    "googlePlaceId": null,
+    "category": "Street Food / Snack",
+    "cuisine": "Taiwanese",
+    "price": "$50-100 TWD",
+    "why": "Traditional Taiwanese street snack",
+    "dishes": [
+      "Crab shell yellow cake",
+      "Pepper bun"
+    ],
+    "sources": [
+      {
+        "type": "friend",
+        "url": null,
+        "image": null,
+        "author": "小明",
+        "savedAt": "2026-04-20"
+      }
+    ],
+    "status": "want",
+    "rank": "T0",
+    "notes": "Popular crab shell yellow cakes and pepper buns. Opens at 9:30. Phone: +886 2 2336 6063. Plus Code: 2GH2+R4. Mood: Quick bite, Take away. Best for: Breakfast, Snack."
+  },
+  {
+    "id": "p_1dfdea67",
+    "name": "阿伯蛋包面 (A-Bo Egg Noodle)",
+    "lat": 25.0286,
+    "lng": 121.4998,
+    "address": "No. 88, Shuangyuan St, Wanhua District, Taipei City, Taiwan 108",
+    "area": "Wanhua District",
+    "googlePlaceId": null,
+    "category": "Noodle Shop",
+    "cuisine": "Taiwanese",
+    "price": "$100-200 TWD",
+    "why": "Famous egg-wrapped noodles, people queue for this",
+    "dishes": [
+      "Egg wrapped noodles",
+      "Chili sauce"
+    ],
+    "sources": [
+      {
+        "type": "ig",
+        "url": null,
+        "image": null,
+        "author": "@taipei_food",
+        "savedAt": "2026-04-20"
+      }
+    ],
+    "status": "want",
+    "rank": "T0",
+    "notes": "Famous egg noodle shop. Open until 14:00. Phone: +886 2 2338 1439. Facebook: cuxi0517. Plus Code: 2FJV+86. Mood: Casual, Quick lunch. Best for: Lunch, Early afternoon."
+  },
+  {
+    "id": "p_5b9ff9a2",
+    "name": "至せい-shisei-至誠 Taipei",
+    "lat": 25.0657,
+    "lng": 121.5346,
+    "address": "No. 42號, Tianxiang Rd, Zhongshan District, Taipei City, Taiwan 10491",
+    "area": "Zhongshan District",
+    "googlePlaceId": null,
+    "category": "Izakaya",
+    "cuisine": "Japanese",
+    "price": "$400-800 TWD",
+    "why": "Authentic Japanese izakaya experience, LGBTQ friendly",
+    "dishes": [
+      "Grilled skewers",
+      "Sake selection",
+      "Seasonal dishes"
+    ],
+    "sources": [
+      {
+        "type": "magazine",
+        "url": null,
+        "image": null,
+        "author": "食尚玩家",
+        "savedAt": "2026-04-20"
+      }
+    ],
+    "status": "want",
+    "rank": "T0",
+    "notes": "Japanese izakaya. Opens at 18:00. Phone: +886 2 2521 1700. Website: shisei-taipei.com. Plus Code: 3G6C+J9. LGBTQ Friendly. Mood: Date night, Group dinner, Celebrations. Best for: Dinner, Late night."
+  },
+  {
+    "id": "p_c55fb1b5",
+    "name": "Chiara 義式料理",
+    "lat": 25.0084,
+    "lng": 121.4639,
+    "address": "No. 38, 1F, Alley 3, Lane 270, Section 1, Wenhua Rd, Banqiao District, New Taipei City, Taiwan 22041",
+    "area": "Banqiao District",
+    "googlePlaceId": null,
+    "category": "Italian Restaurant",
+    "cuisine": "Italian",
+    "price": "$400-800 TWD",
+    "why": "From the same IG post that mentioned other spots - looks like a cozy brunch place in Songshan",
+    "dishes": [],
+    "sources": [
+      {
+        "type": "ig",
+        "url": "https://www.instagram.com/p/DXMeLh4geME/",
+        "image": null,
+        "author": "@foodie_account",
+        "savedAt": "2026-04-20"
+      }
+    ],
+    "status": "want",
+    "rank": "T0",
+    "notes": "Authentic Italian cuisine. Opens at 11:30. Phone: +886 2 2249 8479. Instagram: @chiarataiwan. Plus Code: 2FC9+5F. Dishes: Brunch items, coffee - need to check the post again for specifics. Mood: Brunch, Weekend morning, Casual hangout. Best for: Weekend brunch, Late morning."
+  },
+  {
+    "id": "p_2537ae07",
+    "name": "芮秋 Rachel",
+    "lat": 25.0608,
+    "lng": 121.5602,
+    "address": "No. 405號, Fujin St, Songshan District, Taipei City, Taiwan 105",
+    "area": "Songshan District",
+    "googlePlaceId": null,
+    "category": "Brunch Restaurant",
+    "cuisine": "European Brunch / Natural Wine",
+    "price": "$400-600 TWD",
+    "why": "Screenshot shows their signature iron skillet Dutch baby pancake - took nearly a year to perfect, with crispy edges and fluffy center with egg aroma, topped with slow-cooked silk cheese and house-cured pork belly",
+    "dishes": [
+      "Iron skillet Dutch baby pancake (鐵鍋寶貝鬆餅) with silk cheese and house-cured pork belly",
+      "Natural wine"
+    ],
+    "sources": [
+      {
+        "type": "ig",
+        "url": "https://www.instagram.com/p/DXMeLh4geME/",
+        "image": "images/rachel_screenshot.jpg",
+        "author": "@foodie_account (same post)",
+        "savedAt": "2026-04-20"
+      }
+    ],
+    "status": "want",
+    "rank": "T1",
+    "notes": "Minsheng Community natural wine brunch spot. Hours: Mon-Fri 09:00-17:00, Sat-Sun 08:00-21:00. Phone: +886 2 2760 0182. Line: @689elaci. Plus Code: 3H66+83. Founder team from 立秋餐酒館, head chef with 10+ years Taiwanese Western cuisine experience. Mood: Morning energy boost with natural wine and European cuisine, Chill brunch vibes. Best for: Weekend morning 08:00, Afternoon wine session until 21:00 on weekends."
+  },
+  {
+    "id": "p_889146a8",
+    "name": "landed (用一本書佐十杯酒)",
+    "lat": 25.0464289,
+    "lng": 121.5461301,
+    "address": "1F, No. 1, Alley 45, Lane 366, Section 2, Bade Rd, Songshan District, Taipei City, Taiwan 105",
+    "area": "Songshan District",
+    "googlePlaceId": null,
+    "category": "Wine Bar",
+    "cuisine": "Natural Wine Bar / Literary Theme",
+    "price": "$600-1000 TWD",
+    "why": "Unique concept: 'ten natural wines to match a book.' Current selection pairs wines with Hermann Hesse's Siddhartha - love the contemplative vibe of 'reading a book by drinking'. Screenshot shows wine glass on open book with Chinese text.",
+    "dishes": [
+      "10-wine flight paired with the current book",
+      "'Bluebeard' with French Alsace Pinot Noir"
+    ],
+    "sources": [
+      {
+        "type": "ig",
+        "url": "https://www.instagram.com/p/DXMeLh4geME/",
+        "image": "images/landed_screenshot.jpg",
+        "author": "same IG post (@foodie_account)",
+        "savedAt": "2026-04-20"
+      }
+    ],
+    "status": "want",
+    "rank": "T1",
+    "notes": "Concept wine bar: pair 10 natural wines with a book's themes. Female owner-operated. Hours: Sat 15:00-00:00, Mon/Sun 18:00-00:00 (Closed Tue). Phone: +886 2 2771 0331. IG: @landed.wine. Plus Code: 2GWW+HF. Current book: Hermann Hesse's 'Siddhartha' (流浪者之歌). Previous selection: 'Women Who Run with the Wolves'. Mood: Sophisticated, contemplative, literary, intimate. Best for: Saturday afternoon book+wine session (15:00), Evening wine flights, Solo reading with wine."
+  }
+]

@@ -231,23 +231,28 @@
         <div class="legend-item"><div class="legend-color" style="background:#a8dadc;"></div>T3 🔵 Maybe Later</div>
         <div class="legend-item"><div class="legend-color" style="background:#457b9d;"></div>T4 ⚪ Low Priority</div>
         <div class="legend-item"><div class="legend-color" style="background:#6c757d;"></div>T5 ⚫ Skip</div>
+        <div class="legend-item"><div class="legend-color" style="background:#999999;"></div>Unranked</div>
         <hr style="margin:15px 0;border-color:#444;">
         <h4>📱 Source Icons</h4>
         <div class="legend-item">📱 Instagram</div>
         <div class="legend-item">👥 Friend</div>
         <div class="legend-item">📝 Blog</div>
         <div class="legend-item">📺 Magazine/TV</div>
-        <div class="legend-item">🎲 Random</div>
+        <div class="legend-item">📍 Other</div>
         <hr style="margin:15px 0;border-color:#444;">
         <h4>✅ Status</h4>
-        <div class="legend-item">🔜 Not Tried</div>
-        <div class="legend-item">✅ Tried</div>
-        <div class="legend-item">⭐ Want to Return</div>
+        <div class="legend-item">🔜 Want to go</div>
+        <div class="legend-item">✅ Visited</div>
     </div>
     
     <!-- Filter Panel -->
     <div class="filter-panel" id="filterPanel">
         <div class="filter-title">🔍 Filter Options</div>
+        <div style="margin-bottom:8px;font-size:12px;opacity:0.8;">Status</div>
+        <div class="area-buttons">
+            <button class="area-btn status-btn" data-status="want" onclick="toggleStatus('want')">🔜 Want to go</button>
+            <button class="area-btn status-btn" data-status="visited" onclick="toggleStatus('visited')">✅ Visited</button>
+        </div>
         <div style="margin-bottom:8px;font-size:12px;opacity:0.8;">Rating Tier</div>
         <div class="rank-buttons">
             <button class="rank-btn" style="background:#e63946;" onclick="toggleRank('T0')">T0 🔴</button>
@@ -262,16 +267,8 @@
         <button class="reset-btn" onclick="resetFilters()">🔄 Reset All Filters</button>
     </div>
 
-    <!-- Data & Map Script -->
-    <script src="data.js" onerror="document.body.innerHTML='<div style=padding:40px;text-align:center;font-family:sans-serif><h2>Map Error</h2><p>Could not load data.js. Check console for details.</p></div>'"></script>
+    <!-- Map Script -->
     <script>
-        // Error handling: bail gracefully if data.js failed to load
-        if (typeof foodData === 'undefined' || !Array.isArray(foodData)) {
-            console.error('food-data-error: data.js not loaded or malformed');
-            document.getElementById('map').innerHTML = '<div style="padding:40px;text-align:center;font-family:sans-serif;color:#fff"><h2>Map Data Error</h2><p>Could not load restaurant data. Please check data.js is valid.</p></div>';
-            throw new Error('foodData is not defined');
-        }
-
         // Map initialization
         const map = L.map('map').setView([25.05, 121.55], 13);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
@@ -300,32 +297,76 @@
 
         // Source icon mapping
         const sourceIcons = {
-            'IG': '📱',
-            'Friend': '👥',
-            'Blog': '📝',
-            'Magazine': '📺',
-            'Random': '🎲'
+            'ig': '📱',
+            'friend': '👥',
+            'blog': '📝',
+            'magazine': '📺'
+        };
+        const sourceLabels = {
+            'ig': 'Instagram',
+            'friend': 'Friend',
+            'blog': 'Blog',
+            'magazine': 'Magazine/TV',
+            'other': 'Other'
         };
 
-        // Status icon mapping
-        const statusIcons = {
-            'Not Tried': '🔜',
-            'Tried': '✅',
-            'Want to Return': '⭐'
+        const statusLabels = {
+            'want': '🔜 Want to go',
+            'visited': '✅ Visited'
         };
+
+        // Place data is untrusted (it will come from auto-extracted captures), so escape everything
+        function esc(value) {
+            return String(value ?? '').replace(/[&<>"']/g, c => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            })[c]);
+        }
+
+        function safeUrl(url) {
+            if (!url) return '';
+            try {
+                const parsed = new URL(url, location.href);
+                return ['http:', 'https:'].includes(parsed.protocol) ? parsed.href : '';
+            } catch {
+                return '';
+            }
+        }
 
         // Track current filters
+        let places = [];
+        let activeStatuses = new Set();
         let activeRanks = new Set();
         let activeAreas = new Set();
         let markers = [];
 
         // Initialize area buttons from data
         function initAreaButtons() {
-            const areas = [...new Set(foodData.map(item => item.area))].sort();
+            const areas = [...new Set(places.map(item => item.area).filter(Boolean))].sort();
             const container = document.getElementById('areaButtons');
-            container.innerHTML = areas.map(area => 
-                `<button class="area-btn" onclick="toggleArea('${area}')">${area}</button>`
-            ).join('');
+            container.innerHTML = '';
+            areas.forEach(area => {
+                const btn = document.createElement('button');
+                btn.className = 'area-btn';
+                btn.dataset.area = area;
+                btn.textContent = area;
+                btn.addEventListener('click', () => toggleArea(area));
+                container.appendChild(btn);
+            });
+        }
+
+        function sourceHtml(source, name) {
+            const url = safeUrl(source.url);
+            const image = safeUrl(source.image);
+            return `
+                <div class="popup-info source">
+                    ${sourceIcons[source.type] || '📍'} <strong>Discovered via:</strong> ${esc(sourceLabels[source.type] || source.type)}
+                    ${source.author ? ` (${esc(source.author)})` : ''}
+                    ${url ? `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer" class="inspiration-link">🔗 See Inspiration</a>` : ''}
+                </div>
+                ${image ? `
+                <div style="margin-top:10px">
+                    <img src="${esc(image)}" alt="${esc(name)}" style="width:100%;border-radius:8px;max-height:200px;object-fit:cover;" loading="lazy">
+                </div>` : ''}`;
         }
 
         // Create markers
@@ -334,8 +375,9 @@
             markers.forEach(m => map.removeLayer(m));
             markers = [];
 
-            foodData.forEach(item => {
+            places.forEach(item => {
                 // Apply filters
+                if (activeStatuses.size > 0 && !activeStatuses.has(item.status)) return;
                 if (activeRanks.size > 0 && !activeRanks.has(item.rank)) return;
                 if (activeAreas.size > 0 && !activeAreas.has(item.area)) return;
 
@@ -349,61 +391,51 @@
                     fillOpacity: 0.9
                 }).addTo(map);
 
+                const dishes = Array.isArray(item.dishes) ? item.dishes : [];
+                const sources = Array.isArray(item.sources) ? item.sources : [];
+                const basics = [item.category, item.cuisine].filter(Boolean).map(esc).join(' · ');
+
                 const popupContent = `
-                    <div class="popup-title">${item.name}</div>
+                    <div class="popup-title">${esc(item.name)}</div>
                     
                     <!-- Status & Priority -->
                     <div class="popup-section">
                         <div class="popup-badges">
-                            <span class="badge status">${statusIcons[item.status] || '🔜'} ${item.status}</span>
-                            <span class="badge priority" style="background:${color}">${item.rank}</span>
+                            <span class="badge status">${statusLabels[item.status] || statusLabels.want}</span>
+                            ${item.rank ? `<span class="badge priority" style="background:${color}">${esc(item.rank)}</span>` : ''}
                         </div>
                     </div>
                     
-                    <!-- Source Context - The key differentiator! -->
-                    <div class="popup-section">
-                        <div class="popup-info source">
-                            ${sourceIcons[item.source] || '📍'} <strong>Discovered via:</strong> ${item.source}
-                            ${item.sourceDetail ? ` (${item.sourceDetail})` : ''}
-                            ${item.inspirationLink ? `<a href="${item.inspirationLink}" target="_blank" rel="noopener noreferrer" class="inspiration-link">🔗 See Inspiration</a>` : ''}
-                        </div>
-                        ${item.inspirationImage ? `
-                        <div style="margin-top:10px">
-                            <img src="${item.inspirationImage}" alt="${item.name}" style="width:100%;border-radius:8px;max-height:200px;object-fit:cover;" loading="lazy">
-                        </div>` : ''}
-                    </div>
-                    
-                    <!-- Why Try - The motivation! -->
-                    ${item.whyTry ? `
+                    <!-- Why - The motivation! -->
+                    ${item.why ? `
                     <div class="popup-section">
                         <div class="popup-label">✨ Why try it:</div>
-                        <div class="popup-context">${item.whyTry}</div>
+                        <div class="popup-context">${esc(item.why)}</div>
                     </div>` : ''}
                     
-                    <!-- Dish Recommendations -->
-                    ${item.dishRecommendations ? `
+                    <!-- Dishes -->
+                    ${dishes.length ? `
                     <div class="popup-section">
                         <div class="popup-label">🍽️ What to order:</div>
-                        <div class="popup-context">${item.dishRecommendations}</div>
+                        <div class="popup-context">${dishes.map(esc).join('<br>')}</div>
                     </div>` : ''}
                     
-                    <!-- Mood & Best For -->
-                    ${(item.mood || item.bestFor) ? `
+                    <!-- Sources - The key differentiator! -->
+                    ${sources.length ? `
                     <div class="popup-section">
-                        ${item.mood ? `<div class="popup-info">🎭 <strong>Mood:</strong> ${item.mood}</div>` : ''}
-                        ${item.bestFor ? `<div class="popup-info">⏰ <strong>Best for:</strong> ${item.bestFor}</div>` : ''}
+                        ${sources.map(source => sourceHtml(source, item.name)).join('')}
                     </div>` : ''}
                     
                     <!-- Basic Info -->
                     <div class="popup-section">
-                        <div class="popup-info">🏷️ ${item.cuisine} · ${item.type}</div>
-                        <div class="popup-info">📍 ${item.area}</div>
-                        <div class="popup-info">💰 ${item.price}</div>
-                        ${item.notes ? '<div class="popup-info">📝 ' + item.notes + '</div>' : ''}
+                        ${basics ? `<div class="popup-info">🏷️ ${basics}</div>` : ''}
+                        ${item.area ? `<div class="popup-info">📍 ${esc(item.area)}</div>` : ''}
+                        ${item.price ? `<div class="popup-info">💰 ${esc(item.price)}</div>` : ''}
+                        ${item.notes ? `<div class="popup-info">📝 ${esc(item.notes)}</div>` : ''}
                     </div>
                     
                     <!-- Navigation -->
-                    <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.name + ' ' + item.address)}"
+                    <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.name + ' ' + (item.address || ''))}${item.googlePlaceId ? '&query_place_id=' + encodeURIComponent(item.googlePlaceId) : ''}"
                        target="_blank" rel="noopener noreferrer" class="popup-nav-btn">🗺️ Open in Google Maps</a>
                 `;
 
@@ -413,27 +445,22 @@
         }
 
         // Toggle functions
-        function toggleRank(rank) {
-            if (activeRanks.has(rank)) {
-                activeRanks.delete(rank);
+        function toggleSet(set, value) {
+            if (set.has(value)) {
+                set.delete(value);
             } else {
-                activeRanks.add(rank);
+                set.add(value);
             }
             updateUI();
             createMarkers();
         }
 
-        function toggleArea(area) {
-            if (activeAreas.has(area)) {
-                activeAreas.delete(area);
-            } else {
-                activeAreas.add(area);
-            }
-            updateUI();
-            createMarkers();
-        }
+        function toggleStatus(status) { toggleSet(activeStatuses, status); }
+        function toggleRank(rank) { toggleSet(activeRanks, rank); }
+        function toggleArea(area) { toggleSet(activeAreas, area); }
 
         function resetFilters() {
+            activeStatuses.clear();
             activeRanks.clear();
             activeAreas.clear();
             updateUI();
@@ -441,14 +468,17 @@
         }
 
         function updateUI() {
+            document.querySelectorAll('.status-btn').forEach(btn => {
+                btn.classList.toggle('active', activeStatuses.has(btn.dataset.status));
+            });
             // Update rank buttons
             document.querySelectorAll('.rank-btn').forEach(btn => {
                 const rank = btn.textContent.split(' ')[0];
                 btn.classList.toggle('active', activeRanks.has(rank));
             });
             // Update area buttons
-            document.querySelectorAll('.area-btn').forEach(btn => {
-                btn.classList.toggle('active', activeAreas.has(btn.textContent));
+            document.querySelectorAll('#areaButtons .area-btn').forEach(btn => {
+                btn.classList.toggle('active', activeAreas.has(btn.dataset.area));
             });
         }
 
@@ -463,9 +493,24 @@
             document.getElementById('legendPanel').classList.remove('show');
         }
 
+        function showDataError(message) {
+            console.error('food-data-error:', message);
+            document.getElementById('map').innerHTML = '<div style="padding:40px;text-align:center;font-family:sans-serif;color:#fff"><h2>Map Data Error</h2><p>Could not load places.json. Check the console for details.</p></div>';
+        }
+
         // Initialize
-        initAreaButtons();
-        createMarkers();
+        fetch('places.json', { cache: 'no-cache' })
+            .then(res => {
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                return res.json();
+            })
+            .then(data => {
+                if (!Array.isArray(data)) throw new Error('places.json must be an array');
+                places = data.filter(p => Number.isFinite(p.lat) && Number.isFinite(p.lng));
+                initAreaButtons();
+                createMarkers();
+            })
+            .catch(err => showDataError(err.message));
     </script>
 </body>
 </html>

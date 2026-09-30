@@ -71,6 +71,8 @@ Cloudflare Pages redeploys (~1 min) → pin on the map
   "area": "Songshan",
   "googlePlaceId": "ChIJ...",       // de-duplication + later lookups (hours, etc.)
   "category": "cafe",               // free text, not an enum
+  "cuisine": "European Brunch",     // optional
+  "price": "$400-600 TWD",          // optional
   "why": "Signature Dutch baby pancake",   // the one line I'll otherwise forget
   "dishes": ["Dutch baby"],
   "sources": [
@@ -90,10 +92,11 @@ Cloudflare Pages redeploys (~1 min) → pin on the map
 ## Build steps
 
 ### Step 1 — Move hosting and switch to `places.json`
-- [ ] Convert `data.js` → `places.json` (migrate the 7 existing places into the new model; drop the template entry)
-- [ ] Map loads `places.json` with `fetch`
-- [ ] Deploy to Cloudflare Pages from this repo
-- [ ] Add "want to go / visited" toggle to the map
+- [x] Convert `data.js` → `places.json` (migrate the 7 existing places into the new model)
+- [x] Map loads `places.json` with `fetch`
+- [ ] Deploy to Cloudflare Pages from this repo (needs a Cloudflare account)
+- [x] Add "want to go / visited" filter to the map
+- [x] Remove the Airtable script and docs
 
 ### Step 2 — Make the site installable and a share target
 - [ ] `manifest.webmanifest` with `share_target` (POST, `multipart/form-data`, accepts `image/*`)
