@@ -1,263 +1,131 @@
-# 🗺️ Personal Interest Map — Project Plan
+# 🗺️ Food Map — Project Plan (v2)
 
-> **Vision:** A personal map for storing locations of interest — restaurants, cafes, bars, shops, activities — with the key differentiator being **rich context**: why you saved it, the original IG post, screenshots, blog mentions, friend recommendations. The system is optimized for **zero-friction capture** and **structured curation**, not just map viewing.
-
----
-
-## Problem Statement
-
-Current capture methods all have too much friction:
-
-| Method | Friction |
-|--------|----------|
-| Ask assistant (human) | Bottleneck, async delay, context loss |
-| Edit `data.js` manually | Dev tools, lat/lng lookup, formatting hell |
-| Airtable form | Switch apps, manual fields, no auto-context |
-| Google Maps save | No rich context, no screenshots, no "why?" |
-
-**The real product is the pipeline from "I saw something cool" → "rich context on a map."**
+> **Goal:** Saving a place I just saw should take under 10 seconds, and the map should remember *why* I saved it.
+>
+> v1 of this plan (Telegram inbox, 5 phases) is in git history. It was replaced because it put too much infrastructure in front of the real problem: **capture friction**. Seven places were saved in four months.
 
 ---
 
-## Architecture: 3 Layers
+## Decisions
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  LAYER 1: INBOX        (Zero-friction capture)                  │
-│  ───────                                                       │
-│  • Share IG post → Telegram bot        (2 taps)                 │
-│  • Screenshot → Telegram/drop zone     (1 paste)                │
-│  • Maps pin + voice note               (3 sec)                  │
-│  • Blog link → email forward                                       │
-│  • Raw, unstructured, append-only                                 │
-└───────────────────────────────┬─────────────────────────────────┘
-                                │ raw drafts (URL, image, text, location)
-                                ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  LAYER 2: CURATION     (Structured refinement)                  │
-│  ────────                                                       │
-│  • Auto-extract: IG captions → name, area, whyTry, dishes       │
-│  • Auto-geocode: "X Cafe, Da'an" → lat/lng suggestion           │
-│  • Auto-categorize: text → cuisine, type, price hints           │
-│  • Batch review queue: swipe/tap to confirm fields              │
-│  • Manual decisions limited to: rank, status, location pin      │
-└───────────────────────────────┬─────────────────────────────────┘
-                                │ structured records
-                                ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  LAYER 3: MAP          (Rich context viewing)                   │
-│  ──────                                                         │
-│  • Leaflet-based map with context panels                        │
-│  • Source attribution showing IG/blog embeds                    │
-│  • Screenshots in popups                                        │
-│  • Filter by mood, bestFor, source, status, companion           │
-│  • Not just food — any interest category                        │
-└─────────────────────────────────────────────────────────────────┘
-```
+| Question | Decision | Why |
+|---|---|---|
+| Capture channel | **Installable web app (PWA) with Android Web Share Target** | Appears in the Android share sheet from Instagram, Google Maps, Chrome and the screenshot toolbar. No chat app in between. |
+| Review | **Inbox page on the map itself** | Correcting a location is dragging a pin on a real map, which a chat can't do well. One review UI for every capture source. |
+| Extraction | **One Claude vision call** per capture | Replaces the separate OCR, parser and classifier steps from v1. |
+| Geocoding | **Google Places API** | Handles Chinese names and small Taipei shops far better than OpenStreetMap. Gives a `placeId` for de-duplication. |
+| Hosting | **Cloudflare Pages + Pages Functions** (moving off GitHub Pages) | The share target must POST to the site's own origin. Pages Functions give us that endpoint with no server and no CORS. Still deploys from this repo. |
+| Storage | **Drafts in Cloudflare KV; saved places committed to `places.json` in this repo** | Git stays the source of truth with full history. KV holds the short-lived inbox. |
+| Airtable / Supabase / Telegram | **Dropped** | Not needed for one person. |
+
+Not supported: **iPhone.** Safari does not let websites register as share targets. If that ever matters, an Apple Shortcut can POST to the same `/api/capture` endpoint.
 
 ---
 
-## Data Model: `Place`
+## How it works
 
 ```
-place: {
-    // ── Core ──
-    name: string,
-    lat: number,
-    lng: number,
-    address: string,
-    area: string,
+Android share sheet ("Food Map")
+        │  POST multipart: title, text, url, image
+        ▼
+/share  (Pages Function)
+        ├─ Google Maps link? → resolve short link → Places API details   (high confidence)
+        ├─ Image / caption?  → Claude vision → name, area, why, dishes, category
+        │                    → Places API text search "name + area, Taipei" → lat/lng, placeId
+        ├─ Store draft in KV (image included)
+        └─ 303 redirect → /inbox#<draftId>
+                 │
+                 ▼
+/inbox  (static page on the map site)
+        ├─ Draft card + mini-map with draggable pin
+        ├─ Edit any field inline
+        └─ [Save] → POST /api/drafts/:id/approve
+                 │
+                 ▼
+Pages Function commits via GitHub API
+        ├─ places.json (append or merge by placeId)
+        └─ images/<id>.jpg
+                 │
+                 ▼
+Cloudflare Pages redeploys (~1 min) → pin on the map
+```
 
-    // ── Taxonomy (beyond just food) ──
-    category: "food" | "cafe" | "bar" | "shop" | "activity" | "hotel" | "viewpoint",
-    subcategory: "Italian" | "Bookstore" | "Hiking trail" | ...,
+**What each share source gives us on Android:**
+- **Google Maps → Share:** place name + `maps.app.goo.gl` link. Resolves straight to a `placeId`. Best case.
+- **Instagram → Share:** only the post URL. Instagram blocks fetching post content, so the URL is kept as the source and **the screenshot is what gets read**.
+- **Screenshot toolbar → Share:** image only. Claude reads it.
+- **Chrome → Share:** page title + URL (blogs, articles). The Function fetches the page text for Claude.
 
-    // ── Rich Context (the key differentiator) ──
-    whySaved: string,          // What caught your attention
-    notes: string,             // Post-visit personal notes
-    mood: string[],            // "date night", "solo adventure"
-    bestFor: string,           // "weekend afternoon", "rainy day"
-    companion: ["solo" | "date" | "group" | "family"],
+**Security:** the site is public but the write endpoints are not. `/share`, `/inbox` and `/api/*` are behind **Cloudflare Access** (free for one user: log in once with email, cookie lasts a month). The public map stays public.
 
-    // ── Source Trail (full provenance) ──
-    sources: [{
-        type: "ig_post" | "blog" | "screenshot" | "friend" | "magazine",
-        url: string,           // Original link
-        author: string,        // @handle or friend name
-        image: string,         // Path to downloaded/screenshot image
-        capturedAt: timestamp
-    }],
+---
 
-    // ── Status & Priority ──
-    status: "want_to_go" | "visited" | "want_to_return" | "not_interested",
-    visitedAt: timestamp | null,
-    rank: "T0" | "T1" | "T2" | "T3" | "T4" | "T5",
+## Data model: `places.json`
 
-    // ── Practical ──
-    priceRange: string,        // "$400-600 TWD"
-    hours: string,
-    phone: string,
-    reservationRequired: boolean,
-
-    // ── Personal Tags ──
-    tags: ["birthday_spot", "rainy_day", "take_parents"],
-
-    // ── Media ──
-    photos: ["./images/..."],
-    screenshots: ["./screenshots/..."]
+```js
+{
+  "id": "p_abc123",
+  "name": "芮秋 Rachel",
+  "lat": 25.06, "lng": 121.56,
+  "address": "...",
+  "area": "Songshan",
+  "googlePlaceId": "ChIJ...",       // de-duplication + later lookups (hours, etc.)
+  "category": "cafe",               // free text, not an enum
+  "why": "Signature Dutch baby pancake",   // the one line I'll otherwise forget
+  "dishes": ["Dutch baby"],
+  "sources": [
+    { "type": "ig", "url": "https://instagram.com/p/...", "image": "images/p_abc123.jpg", "author": "@...", "savedAt": "2026-09-30" }
+  ],
+  "status": "want",                 // "want" | "visited"
+  "rank": null,                     // T0–T5, assigned after visiting
+  "notes": ""
 }
 ```
 
-**Key evolution from current `data.js`:**
-- `sources` is an **array** (one place may come from IG + friend + blog)
-- `category` is not limited to food — enables map expansion
-- `screenshots` are first-class, not shoehorned into `inspirationImage`
-- `mood`, `companion`, `tags` enable richer filtering
+- Sharing a place that already exists (same `googlePlaceId`) **adds a source** instead of creating a duplicate.
+- Only `name`, `lat`, `lng` and `why` are required. Everything else can be filled in later.
 
 ---
 
-## Implementation Phases
+## Build steps
 
-### ✅ Phase 0: Current State (Done)
-- Static Leaflet map from `data.js`
-- Filters by rank & area
-- Popups with context (whyTry, dishRecs, mood, bestFor)
-- Screenshots stored in `./images/`
-- Data entry via manual `data.js` edits or assistant
+### Step 1 — Move hosting and switch to `places.json`
+- [ ] Convert `data.js` → `places.json` (migrate the 7 existing places into the new model; drop the template entry)
+- [ ] Map loads `places.json` with `fetch`
+- [ ] Deploy to Cloudflare Pages from this repo
+- [ ] Add "want to go / visited" toggle to the map
 
----
+### Step 2 — Make the site installable and a share target
+- [ ] `manifest.webmanifest` with `share_target` (POST, `multipart/form-data`, accepts `image/*`)
+- [ ] Minimal service worker (needed for install on some Android browsers)
+- [ ] `/share` Function that stores the raw capture in KV and redirects to `/inbox`
+- [ ] Cloudflare Access on `/share`, `/inbox`, `/api/*`
 
-### 📌 Phase 1: Telegram Inbox — Zero-Friction Capture
+### Step 3 — Extraction
+- [ ] Google Maps link → Places details
+- [ ] Image / caption / page text → Claude vision → structured draft
+- [ ] Places text search to attach lat/lng + `placeId`
+- [ ] Confidence flag: drafts without a Places match get a ⚠️ and no auto-pin
 
-**Goal:** Replace human assistant as the capture bottleneck. Every interesting location should be savable in ≤3 taps from the app you're already in (IG, Maps, browser).
+### Step 4 — Inbox and save
+- [ ] `/inbox` page: draft cards, inline editing, draggable pin
+- [ ] Approve → commit `places.json` + image via GitHub API (fine-grained token, this repo only)
+- [ ] Merge into existing place when `placeId` matches
+- [ ] Skip → delete draft
 
-**Deliverables:**
-- [ ] Telegram bot/channel configured as inbox
-- [ ] IG share target configured (Share → Telegram → Bot)
-- [ ] Bot receives and stores raw: URL, caption, media, metadata
-- [ ] Screenshot paste accepted (image + optional text note)
-- [ ] Map pin share accepted (location + optional voice/text context)
-- [ ] Inbox buffer stored draft records (file, DB, or even a Telegram chat archive)
+### Step 5 — Bulk import from Google Maps
+- [ ] Google Takeout → saved lists (CSV / GeoJSON) → drafts in the inbox, marked "needs why"
 
-**Technical note:** Can start with a simple cron that polls a designated Telegram chat, or a webhook bot. No complex infra.
-
----
-
-### 📌 Phase 2: Auto-Extraction Pipeline
-
-**Goal:** Turn raw inbox items into structured draft records with minimal human input.
-
-**Deliverables:**
-- [ ] IG caption parser: extract name, area, dishes, vibe descriptors
-- [ ] Screenshot OCR: extract visible text (restaurant name, address, menu items)
-- [ ] Auto-geocoder: "芮秋 Rachel, 民生社區" → lat/lng suggestion
-- [ ] Auto-category classifier: text signals → category, subcategory, cuisine
-- [ ] Draft record generator with **all** fields pre-filled
-- [ ] Confidence scoring: flag low-confidence extractions for manual review
-
-**Output:** A queue of draft records waiting for approval.
+### Then: use it for 2–4 weeks before building anything else
+Candidates, decided by real usage: filters (category, area, status), a "near me, want to go" view, visit notes/ranking flow, email forwarding as a second capture path, non-food places.
 
 ---
 
-### 📌 Phase 3: Curation UI / Review Flow
+## Secrets needed (stored in Cloudflare, never in the repo)
+- `ANTHROPIC_API_KEY`
+- `GOOGLE_PLACES_API_KEY`
+- `GITHUB_TOKEN` — fine-grained, contents read/write on this repo only
 
-**Goal:** Approve or tweak auto-extracted drafts with minimal friction.
-
-**Options:**
-
-**Option A: Telegram-native review**
-- Bot sends draft as a formatted message
-- You reply: `T0` (sets rank + approves), `edit name = "Corrected"`, `skip`
-- Lowest friction, no new apps
-
-**Option B: Mobile web review UI**
-- Simple page showing draft cards (swipe-like or form-like)
-- Drag pin on mini-map to correct location
-- Tap to confirm rank, status
-- Batch approve multiple at once
-
-**Option C: Obsidian/Telegram hybrid**
-- Review inbox rendered in Obsidian for detailed editing
-- Sync back via commit
-
-**Deliverables:**
-- [ ] Review queue populated from draft records
-- [ ] One-tap approve with rank assignment
-- [ ] Edit any field inline
-- [ ] On approve: write to `data.js`, commit, push, redeploy
-
----
-
-### 📌 Phase 4: Enhanced Map Viewing
-
-**Goal:** The map becomes a rich browsing experience, not just a data viewer.
-
-**Deliverables:**
-- [ ] Source attribution in popup: link to original IG post, blog URL
-- [ ] Embedded screenshots / media in popups
-- [ ] Filter by: mood, companion, tags, category, source type
-- [ ] "Want to go" / "Visited" toggles with date tracking
-- [ ] Category expansion: switch between Food view and All Interests view
-- [ ] Route planning: multi-stop selection from saved places
-
----
-
-### 📌 Phase 5: Sync Infrastructure
-
-**Goal:** Reliable, automated sync from inbox → data → deployed map.
-
-**Deliverables:**
-- [ ] Cron job or GH Action that processes inbox periodically
-- [ ] Airtable or Supabase as structured backing store (optional — for multi-device access)
-- [ ] Sync script: inbox → structured records → `data.js` → commit → deploy
-- [ ] Conflict resolution: if you edit in Git and in Airtable simultaneously
-
-**Note:** Airtable was explored but deprioritized due to capture friction. May be revisited as the **storage backend** for curation, not the **capture interface**.
-
----
-
-## Capture Method Comparison
-
-| Task | Airtable | Manual data.js | Telegram Inbox (Proposed) |
-|------|----------|----------------|---------------------------|
-| IG post → save | Switch app, manual fields | Dev environment | Share → Telegram (2 taps) |
-| Screenshot + context | Upload, type description | OCR + manual lat/lng | Paste image, done |
-| "Why I saved it" | Type from memory | Type from memory | Auto-extracted from caption |
-| Location | Look up lat/lng | Look up lat/lng | Auto-geocoded from name |
-| Batch add 5 places | Repeat form 5× | Edit file, format 5× | Share 5 posts, review once |
-| Rich media | Attachment field | File path + git add | Original preserved, linked |
-| Add while on phone | Mobile-unfriendly | Impossible | Native to phone workflow |
-
----
-
-## Decisions to Make
-
-1. **Capture channel:** Telegram bot vs. Telegram channel vs. shared iOS album vs. email address
-2. **Review interface:** Telegram reply commands vs. mobile web UI vs. Obsidian
-3. **Storage backend:** Git-only (`data.js`) vs. lightweight DB (SQLite/JSON file) vs. Airtable/Supabase as sync target
-4. **Auto-extraction engine:** Local LLM OCR vs. cloud vision API vs. rule-based parsers
-5. **Deployment trigger:** Manual `git push` vs. GitHub Actions auto-deploy vs. webhook push
-
----
-
-## Immediate Next Steps (When Resuming)
-
-1. **Confirm Phase 1 scope:** Do we start with a Telegram bot, or would you prefer a dedicated email address or photo album as the inbox?
-2. **Pick the review style:** Reply-to-bot commands, or a simple mobile web page for review?
-3. **Store this plan in repo:** `PROJECT_PLAN.md` alongside code
-
----
-
-## Appendix: Why This Architecture Wins
-
-- **Capture first:** The hardest part of any personal data app is getting data in. Optimizing for capture means the system gets used.
-- **Don't make me type lat/lng:** Geocoding should be automatic from names and areas. Human should only confirm the pin.
-- **Preserve provenance:** A place is memorable because of *how you discovered it*. The screenshot, the IG caption, the friend's voice note — all preserved.
-- **Structured lazily:** You don't know whether a place is T0 when you first see it. The system should let you capture first, prioritize later.
-- **Category-agnostic from day 1:** Even if 90% of entries are food today, the data model should not assume food. Tomorrow you might save a bookstore or a viewpoint.
-
----
-
-*Document version: 1.0*
-*Created: 2025*
-*Status: Awaiting Phase 1 kickoff*
+## Success criteria
+- Share → draft visible in the inbox in **under 10 seconds**
+- **30+ places** saved in the first month without forcing it
