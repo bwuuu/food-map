@@ -18,8 +18,9 @@ async function fakeCloudflare() {
       .setIssuedAt()
       .setExpirationTime(o.expires ?? '1h')
       .sign(privateKey);
-  const identify = accessVerifier({ teamDomain: TEAM, audience: AUD, keySet: createLocalJWKSet({ keys: [jwk] }) });
-  return { sign, identify };
+  const keySet = createLocalJWKSet({ keys: [jwk] });
+  const identify = accessVerifier({ teamDomain: TEAM, audience: AUD, keySet });
+  return { sign, identify, keySet };
 }
 
 const headers = (h: Record<string, string>) => new Headers(h);
@@ -30,6 +31,14 @@ describe('accessVerifier', () => {
     const token = await cf.sign();
     expect(await cf.identify(headers({ 'cf-access-jwt-assertion': token }))).toEqual({ email: 'me@example.com' });
     expect(await cf.identify(headers({ cookie: `a=b; CF_Authorization=${token}` }))).toEqual({ email: 'me@example.com' });
+  });
+
+  it('accepts the team domain pasted as a URL, as the dashboard shows it', async () => {
+    const cf = await fakeCloudflare();
+    for (const teamDomain of [`https://${TEAM}/`, `https://${TEAM}`, `${TEAM}/`]) {
+      const identify = accessVerifier({ teamDomain, audience: AUD, keySet: cf.keySet });
+      expect(await identify(headers({ 'cf-access-jwt-assertion': await cf.sign() }))).toEqual({ email: 'me@example.com' });
+    }
   });
 
   it('refuses no token, another app’s token, and an expired one', async () => {

@@ -47,7 +47,8 @@ export function accessVerifier(opts: {
     throw new Error('ACCESS_TEAM_DOMAIN and ACCESS_AUD must be set, or DEV_ACCOUNT for local work');
   }
 
-  const issuer = `https://${teamDomain}`;
+  // The dashboard shows the team domain as a URL; accept it either way.
+  const issuer = `https://${teamDomain.replace(/^https?:\/\//, '').replace(/\/+$/, '')}`;
   const jwks = keySet ?? createRemoteJWKSet(new URL(`${issuer}/cdn-cgi/access/certs`));
 
   return async (headers) => {
@@ -56,8 +57,10 @@ export function accessVerifier(opts: {
     try {
       const { payload } = await jwtVerify(token, jwks, { issuer, audience });
       return { email: typeof payload.email === 'string' ? payload.email : null };
-    } catch {
-      // Expired, wrong audience, bad signature: all the same to the caller.
+    } catch (e) {
+      // Expired, wrong audience, bad signature: all the same to the caller,
+      // but the reason goes to the log so a misconfiguration is diagnosable.
+      console.warn(`[auth] rejected token (issuer ${issuer}): ${(e as { code?: string }).code ?? e}`);
       throw new Unauthorized('could not verify that sign-in');
     }
   };
