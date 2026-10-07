@@ -52,6 +52,7 @@ Put scripts and screenshots in the directory the brief names, never in the repo.
 - Visual judgement ("readable", "cramped") is reported with a severity (high/med/low) and the screenshot it comes from.
 
 ## Limits
+- **Install and share sheet need Chrome on a real phone.** Brave on Android only makes shortcuts, which never become share targets.
 - **Cloudflare Access can't be checked here.** Locally `DEV_ACCOUNT` bypasses it. The JWT check is covered by `src/server/auth.test.ts` and `app.test.ts`. Mark sign-in behaviour NOT VERIFIABLE.
 - **Docker isn't available** to this user (not in the `docker` group). The container is checked by bwu on the homelab.
 - No real Android: the phone size is emulated in Chromium. Installing the app and the share sheet itself are NOT VERIFIABLE; only bwu can test them on a phone. `curl -F` to `/share` exercises the same request the share sheet sends.

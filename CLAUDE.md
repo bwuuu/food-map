@@ -20,7 +20,7 @@ docker compose up -d --build   # production, 127.0.0.1:8088 (needs .env, see .en
 
 - `src/place.ts`: the `Place` / `Source` model, shared by server, page and scripts
 - `src/server/`: Hono. `auth.ts` verifies the Cloudflare Access JWT on **every** route (pages included). `app.ts` has the routes and the input checks (`parseSaveInput`): `POST /share` (the Android share target), `/api/places`, `/api/drafts`, save and skip, `/images/*` from the data dir, and `dist/`. `store.ts` owns every file read and write (atomic, serialized). `extract.ts` runs after each share, in the background: Maps link → coordinates (only goo.gl is ever fetched), screenshot → Claude (`claude-opus-5-5`, structured output, refusal fallback), name → Google Places. Each step may fail alone
-- `src/web/`: two pages (Leaflet, vanilla TS). `index.html`/`main.ts` is the map (filters, Near me, visit form in the popup); `inbox.html`/`inbox.ts` turns shares into places. `public/manifest.webmanifest` holds the `share_target`. Shared text is untrusted: build DOM with `textContent`, or `esc()` in HTML strings
+- `src/web/`: two pages (Leaflet, vanilla TS). `index.html`/`main.ts` is the map (filters, Near me, visit form in the popup); `inbox.html`/`inbox.ts` turns shares into places. `public/pwa/manifest.webmanifest` holds the `share_target`. Shared text is untrusted: build DOM with `textContent`, or `esc()` in HTML strings
 - `src/coords.ts`: parses pasted coordinates and Google Maps URLs. Shared by the server (Maps links) and the inbox
 - `scripts/backup.sh <dir>`: dated archive of `data/`, keeps 30; run from host cron
 - `scripts/migrate-v1.ts`: one-off v1 `data.js` → `data/places.json`. Refuses to overwrite
@@ -29,6 +29,7 @@ docker compose up -d --build   # production, 127.0.0.1:8088 (needs .env, see .en
 ## Rules
 
 - Imports name the `.ts` file, and only erasable TypeScript is allowed (no enums, no namespaces), because Node runs the source.
+- `/pwa/` (manifest and icons) is the **only** path served without sign-in: browsers fetch the manifest without cookies, and the share target needs it. Never put anything else there.
 - The server must refuse to start without `ACCESS_TEAM_DOMAIN` + `ACCESS_AUD`. `DEV_ACCOUNT` is for local development only.
 - Coordinates keep full precision.
 - A share whose `googlePlaceId` is already on the map merges into that place as another source; it never overwrites reviewed fields.
