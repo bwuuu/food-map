@@ -29,6 +29,16 @@ docker compose logs app | grep extraction   # "Claude on, Google Places on"
 
 Without them, the inbox works as a manual form and Google Maps share links still place the pin.
 
+### Backups
+
+`data/` is the only copy of the map. `scripts/backup.sh <dir>` writes a dated `food-map-YYYY-MM-DD_HHMM.tar.gz` there and keeps the newest 30. Run it nightly from the host's crontab (`crontab -e`), pointing at another disk or a folder that syncs off this machine:
+
+```cron
+15 3 * * * /home/main/projects/food-map/scripts/backup.sh /path/to/off-machine/food-map-backups >> /tmp/food-map-backup.log 2>&1
+```
+
+To restore: `docker compose down`, `tar -xzf <archive> -C data`, then `docker compose up -d`.
+
 Point a cloudflared public hostname at `http://localhost:8088` and protect it with a Cloudflare Access application.
 
 Local development: `npm ci`, then `npm run dev:server` and `npm run dev` in two terminals, then open http://localhost:5178.

@@ -56,7 +56,7 @@ describe('share → inbox → map', () => {
   it('keeps every place when saves arrive together', async () => {
     for (let i = 0; i < 5; i++) await share({ text: `place ${i}` });
     const ids = (await drafts()).map((d) => d.id);
-    await Promise.all(ids.map((id, i) => save(id, { ...valid, name: `P${i}` })));
+    await Promise.all(ids.map((id, i) => save(id, { ...valid, name: `P${i}`, googlePlaceId: null })));
     expect((await places()).length).toBe(5);
   });
 
@@ -93,6 +93,62 @@ describe('share → inbox → map', () => {
       expect((await save(id, valid)).status).toBe(404);
       expect((await app.request(`/api/drafts/${id}`, { method: 'DELETE' })).status).toBe(404);
     }
+  });
+});
+
+describe('merging by Google place id', () => {
+  it('adds a second share of the same place as another source, not another pin', async () => {
+    await share({ url: 'https://www.instagram.com/p/first/' });
+    let [draft] = await drafts();
+    await save(draft!.id, valid);
+
+    await share({ text: 'friend said', url: 'https://www.youtube.com/watch?v=x' });
+    [draft] = await drafts();
+    const res = await save(draft!.id, { ...valid, name: 'Rachel (different spelling)', why: 'Friend loves the pancakes', dishes: ['Dutch baby', 'Flat white'], sourceType: 'friend', sourceDetail: 'Amy', area: 'Should not replace' });
+    expect(await res.json()).toMatchObject({ merged: true, place: { name: '芮秋 Rachel' } });
+
+    const all = await places();
+    expect(all).toHaveLength(1);
+    expect(all[0]).toMatchObject({
+      name: '芮秋 Rachel', why: 'Dutch baby pancake', dishes: ['Dutch baby', 'Flat white'],
+      sources: [{ type: 'ig' }, { type: 'friend', detail: 'Amy', url: 'https://www.youtube.com/watch?v=x' }],
+      notes: 'Also saved because: Friend loves the pancakes',
+    });
+  });
+
+  it('keeps places without a place id separate', async () => {
+    for (const n of ['A', 'B']) {
+      await share({ text: n });
+      const [d] = await drafts();
+      await save(d!.id, { ...valid, name: n, googlePlaceId: null });
+    }
+    expect(await places()).toHaveLength(2);
+  });
+});
+
+describe('visits', () => {
+  const visit = (id: string, body: unknown) =>
+    app.request(`/api/places/${id}/visit`, { method: 'POST', body: JSON.stringify(body), headers: { 'content-type': 'application/json' } });
+
+  it('marks a place visited with a rank and a dated note', async () => {
+    await share({ text: 'x' });
+    const [d] = await drafts();
+    const { place } = (await (await save(d!.id, valid)).json()) as { place: Place };
+    const res = await visit(place.id, { rank: 'T4', note: 'Pancake lived up to it' });
+    expect(res.status).toBe(200);
+    const [saved] = await places();
+    expect(saved).toMatchObject({ status: 'visited', rank: 'T4' });
+    expect(saved!.notes).toMatch(/^Visited \d{4}-\d{2}-\d{2} \(T4\): Pancake lived up to it$/);
+  });
+
+  it('refuses a bad rank, and unknown or malformed place ids', async () => {
+    await share({ text: 'x' });
+    const [d] = await drafts();
+    const { place } = (await (await save(d!.id, valid)).json()) as { place: Place };
+    expect((await visit(place.id, { rank: 'T9' })).status).toBe(400);
+    expect((await visit(place.id, { rank: 'T0' })).status).toBe(400);
+    for (const id of ['p_00000000', '..', 'p_../../x']) expect((await visit(id, { rank: 'T3' })).status).toBe(404);
+    expect((await places())[0]).toMatchObject({ status: 'want', rank: null });
   });
 });
 

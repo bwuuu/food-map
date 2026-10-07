@@ -11,6 +11,8 @@ const pinIcon = L.divIcon({ className: 'pin', iconSize: [26, 26], iconAnchor: [1
 const list = document.getElementById('drafts')!;
 const empty = document.getElementById('empty')!;
 const toast = document.getElementById('toast')!;
+/** Places already on the map, to spot a share of somewhere I've saved before. */
+let knownPlaces: Place[] = [];
 
 /** Small DOM builder: text is always set as text, never parsed as HTML. */
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, props: Record<string, unknown> = {}, ...children: (Node | string)[]): HTMLElementTagNameMap[K] {
@@ -120,7 +122,10 @@ function card(draft: Draft) {
     googlePlaceId = sg.googlePlaceId;
     if (!pin && sg.lat !== null && sg.lng !== null) placePin([sg.lat, sg.lng], true);
     const warn = sg.confidence === 'low' || sg.note;
-    extractStatus.textContent = warn ? `⚠️ ${sg.note ?? 'Not sure about this one. Check every field.'}` : '✨ Filled in from the share. Check it before saving.';
+    const existing = sg.googlePlaceId ? knownPlaces.find((p) => p.googlePlaceId === sg.googlePlaceId) : undefined;
+    extractStatus.textContent = existing
+      ? `📍 Already on your map as “${existing.name}”. Saving adds this share as another source.`
+      : warn ? `⚠️ ${sg.note ?? 'Not sure about this one. Check every field.'}` : '✨ Filled in from the share. Check it before saving.';
     extractStatus.classList.toggle('warn', !!warn);
     extractStatus.hidden = false;
   };
@@ -179,10 +184,10 @@ function card(draft: Draft) {
       error.hidden = false;
       return;
     }
-    const place = (await res.json()) as Place;
+    const { place, merged } = (await res.json()) as { place: Place; merged: boolean };
     form.remove();
     updateEmpty();
-    showToast(`Saved “${place.name}” to the map.`);
+    showToast(merged ? `Already on the map: added this share to “${place.name}”.` : `Saved “${place.name}” to the map.`);
   });
 
   skip.addEventListener('click', async () => {
@@ -195,6 +200,7 @@ function card(draft: Draft) {
 }
 
 try {
+  knownPlaces = await fetch('/api/places').then((r) => (r.ok ? r.json() : []), () => []);
   const res = await fetch('/api/drafts');
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   for (const d of (await res.json()) as Draft[]) card(d);

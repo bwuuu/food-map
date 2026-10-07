@@ -12,11 +12,15 @@
 import { randomBytes } from 'node:crypto';
 import { mkdir, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import type { Draft, Place, SaveInput, Suggestion } from '../place.ts';
+import type { Draft, Place, SaveInput, Suggestion, VisitInput } from '../place.ts';
 
 export const isDraftId = (id: string) => /^d_[0-9a-f]{12}$/.test(id);
+export const isPlaceId = (id: string) => /^p_[0-9a-f]{8}$/.test(id);
 
 export class NotFound extends Error {}
+
+const today = () => new Date().toISOString().slice(0, 10);
+const addNote = (notes: string | null, line: string) => (notes ? `${notes}\n${line}` : line);
 
 const IMAGE_TYPES: Record<string, string> = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif' };
 export const imageExtension = (type: string) => IMAGE_TYPES[type] ?? null;
@@ -102,32 +106,72 @@ export function createStore(dataDir: string) {
         await writeJson(draftFile(id), { ...draft, extraction: suggestion ? 'done' : 'failed', suggestion });
       }),
 
-    /** Draft → place. The screenshot stays in images/ and moves to the place's source. */
+    /**
+     * Draft → place. If Google Places says it's a place already on the map, the
+     * share becomes another source of that place instead of a duplicate pin.
+     * The screenshot stays in images/ either way.
+     */
     saveDraft: (id: string, input: SaveInput) =>
-      serial(async () => {
+      serial(async (): Promise<{ place: Place; merged: boolean }> => {
         const draft = await getDraft(id);
-        const place: Place = {
-          id: `p_${randomBytes(4).toString('hex')}`,
-          name: input.name,
-          lat: input.lat,
-          lng: input.lng,
-          address: input.address,
-          area: input.area,
-          googlePlaceId: input.googlePlaceId,
-          category: input.category,
-          cuisine: input.cuisine,
-          price: null,
-          why: input.why,
-          dishes: input.dishes,
-          sources: [{ type: input.sourceType, detail: input.sourceDetail, url: draft.url, image: draft.image }],
-          status: 'want',
-          rank: null,
-          notes: null,
-        };
+        const source = { type: input.sourceType, detail: input.sourceDetail, url: draft.url, image: draft.image };
         const places = await readJson<Place[]>(placesFile, []);
-        await writeJson(placesFile, [...places, place]);
+        const existing = input.googlePlaceId ? places.find((p) => p.googlePlaceId === input.googlePlaceId) : undefined;
+
+        let place: Place;
+        if (existing) {
+          place = {
+            ...existing,
+            sources: [...existing.sources, source],
+            dishes: [...new Set([...existing.dishes, ...input.dishes])],
+            // Fill gaps only: what's already on the map was reviewed before.
+            area: existing.area ?? input.area,
+            category: existing.category ?? input.category,
+            cuisine: existing.cuisine ?? input.cuisine,
+            address: existing.address ?? input.address,
+            notes: input.why === existing.why ? existing.notes : addNote(existing.notes, `Also saved because: ${input.why}`),
+          };
+          await writeJson(placesFile, places.map((p) => (p.id === existing.id ? place : p)));
+        } else {
+          place = {
+            id: `p_${randomBytes(4).toString('hex')}`,
+            name: input.name,
+            lat: input.lat,
+            lng: input.lng,
+            address: input.address,
+            area: input.area,
+            googlePlaceId: input.googlePlaceId,
+            category: input.category,
+            cuisine: input.cuisine,
+            price: null,
+            why: input.why,
+            dishes: input.dishes,
+            sources: [source],
+            status: 'want',
+            rank: null,
+            notes: null,
+          };
+          await writeJson(placesFile, [...places, place]);
+        }
         await rm(draftFile(id));
-        return place;
+        return { place, merged: !!existing };
+      }),
+
+    /** After eating there: visited, a rank, and a dated line in the notes. */
+    recordVisit: (id: string, visit: VisitInput) =>
+      serial(async () => {
+        if (!isPlaceId(id)) throw new NotFound();
+        const places = await readJson<Place[]>(placesFile, []);
+        const place = places.find((p) => p.id === id);
+        if (!place) throw new NotFound();
+        const updated: Place = {
+          ...place,
+          status: 'visited',
+          rank: visit.rank,
+          notes: addNote(place.notes, `Visited ${today()} (${visit.rank})${visit.note ? `: ${visit.note}` : ''}`),
+        };
+        await writeJson(placesFile, places.map((p) => (p.id === id ? updated : p)));
+        return updated;
       }),
 
     skipDraft: (id: string) =>
