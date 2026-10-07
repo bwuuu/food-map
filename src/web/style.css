@@ -7,7 +7,9 @@
   --link: #8ab4f8;
 }
 html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; }
-#map { position: fixed; inset: 0; }
+#map { position: fixed; inset: 0; background: var(--bg); }
+/* OSM tiles are light; invert them into a dark map that keeps water blue and parks green. */
+.leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.9); }
 
 #status {
   position: fixed; left: 16px; right: 16px; top: 16px; z-index: 1000;
@@ -26,7 +28,8 @@ html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
 .place h3 { margin: 10px 0 2px; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
 .place ul { margin: 0; padding-left: 18px; }
 .place .notes { white-space: pre-line; color: var(--muted); font-size: 13px; }
-.place img { display: block; width: 100%; max-height: 220px; object-fit: cover; border-radius: 8px; margin-top: 6px; }
+/* Fixed height: the popup's size is known before the lazy image loads, so Leaflet pans to the right place. */
+.place img { display: block; width: 100%; height: 160px; object-fit: cover; border-radius: 8px; margin-top: 6px; }
 .place a { color: var(--link); }
 .place .maps { display: inline-block; margin-top: 12px; }
 .badge { display: inline-block; padding: 1px 8px; border-radius: 99px; font-size: 12px; color: #111; }

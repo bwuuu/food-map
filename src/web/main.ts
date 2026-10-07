@@ -1,5 +1,7 @@
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+// After Leaflet's CSS, so our popup and tile styles win.
+import './style.css';
 import type { Place, Source } from '../place.ts';
 
 const TAIPEI: L.LatLngTuple = [25.05, 121.55];
@@ -9,10 +11,12 @@ const SOURCE_LABELS: Record<Source['type'], string> = {
 
 const map = L.map('map', { zoomControl: false }).setView(TAIPEI, 13);
 L.control.zoom({ position: 'bottomright' }).addTo(map);
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
-  subdomains: 'abcd',
-  maxZoom: 20,
+// OSM's own tiles: no key (CARTO's free basemaps now require one), fine for one
+// user under OSM's tile policy. Darkened in style.css.
+// ponytail: public OSM tiles; switch to a keyed provider if usage ever grows.
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  maxZoom: 19,
 }).addTo(map);
 
 /** Place text will soon come from extracted captures: never trust it as HTML. */
@@ -64,7 +68,12 @@ try {
       fillColor: css.getPropertyValue(p.status === 'visited' ? '--visited' : '--want').trim(),
       fillOpacity: 0.9,
     })
-      .bindPopup(popupHtml(p), { maxWidth: Math.min(320, window.innerWidth - 48), autoPanPadding: [16, 16] })
+      .bindPopup(popupHtml(p), {
+        maxWidth: Math.min(320, window.innerWidth - 48),
+        // Long popups scroll inside instead of running off the top of a phone screen.
+        maxHeight: Math.min(480, window.innerHeight * 0.6),
+        autoPanPadding: [16, 16],
+      })
       .addTo(map);
   }
   if (places.length) map.fitBounds(places.map((p) => [p.lat, p.lng] as L.LatLngTuple), { padding: [40, 40], maxZoom: 15 });

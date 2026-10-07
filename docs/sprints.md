@@ -32,7 +32,7 @@ Extraction then makes it faster; it isn't what makes it work.
 - [ ] `Dockerfile` (multi-stage; the build runs the checks) and `docker-compose.yml` on `127.0.0.1:8088`, with `./data` mounted
 - [ ] Hono server: static files, plus `GET /api/places`. Access JWT check; refuses to start without `ACCESS_TEAM_DOMAIN` and `ACCESS_AUD`. A `DEV_ACCOUNT` escape hatch for local development only
 - [ ] Migration script: `data.js` → `data/places.json` (7 places), with a test. Then delete `data.js`
-- [ ] Map page: Leaflet with CARTO tiles, pins from `/api/places`, popup showing `why`, `dishes` and sources (all text escaped)
+- [ ] Map page: Leaflet with OpenStreetMap tiles (darkened; CARTO now needs an API key), pins from `/api/places`, popup showing `why`, `dishes` and sources (all text escaped)
 - [ ] `CLAUDE.md` for the new architecture; `.claude/skills/verify/SKILL.md`
 - [ ] **You:** add the public hostname in the tunnel (e.g. `food.ottormates.com` → `localhost:8088`) and create the Access application
 
