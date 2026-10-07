@@ -7,7 +7,7 @@ Concept and decisions: `product-concept.md`.
 
 | Sprint | Length | Ships |
 |---|---|---|
-| 0 | 3 days | Skeleton: container, tunnel, Access, the 8 places on a map |
+| 0 | 3 days | Skeleton: container, tunnel, Access, the 7 places on a map |
 | 1 | 1 week | **Capture**: share from Android, then the raw share lands in an inbox; fill it in by hand and save |
 | 2 | 1 week | **Extraction**: Claude and Places pre-fill the draft |
 | 3 | 1 week | **Merge and daily use**: de-duplication, filters, visited and rank, backups |
@@ -20,23 +20,23 @@ Extraction then makes it faster; it isn't what makes it work.
 
 ## Definition of done (every sprint)
 
-1. `npm run check` passes (typecheck, lint, Vitest) and CI is green
+1. `npm run check` passes (typecheck and Vitest) and CI is green
 2. Deployed: `docker compose up -d --build` on the homelab, reachable at the tunnel hostname
 3. Verified at **375px (phone)** and **1440px (desktop)** by the `devkit:ui-verifier` agent, following `.claude/skills/verify/SKILL.md`; verdict lines pasted into the PR
 4. Anything not verifiable in a browser is listed in the PR. Example: the Android share sheet itself, which only you can test on the phone
 
 ## Sprint 0: skeleton (3 days)
 
-- [ ] `package.json`, TypeScript, Vite, Vitest, ESLint, `npm run check`
+- [ ] `package.json`, TypeScript, Vite, Vitest, `npm run check` (no ESLint: strict tsc covers it for now)
 - [ ] GitHub Actions running `npm run check` on PRs
 - [ ] `Dockerfile` (multi-stage; the build runs the checks) and `docker-compose.yml` on `127.0.0.1:8088`, with `./data` mounted
 - [ ] Hono server: static files, plus `GET /api/places`. Access JWT check; refuses to start without `ACCESS_TEAM_DOMAIN` and `ACCESS_AUD`. A `DEV_ACCOUNT` escape hatch for local development only
-- [ ] Migration script: `data.js` → `data/places.json` (8 places), with a test. Then delete `data.js`
+- [ ] Migration script: `data.js` → `data/places.json` (7 places), with a test. Then delete `data.js`
 - [ ] Map page: Leaflet with CARTO tiles, pins from `/api/places`, popup showing `why`, `dishes` and sources (all text escaped)
 - [ ] `CLAUDE.md` for the new architecture; `.claude/skills/verify/SKILL.md`
 - [ ] **You:** add the public hostname in the tunnel (e.g. `food.ottormates.com` → `localhost:8088`) and create the Access application
 
-**Done when:** the 8 places show on your phone, behind your Access login.
+**Done when:** the 7 places show on your phone, behind your Access login.
 
 ## Sprint 1: capture (1 week)
 

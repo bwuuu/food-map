@@ -1,0 +1,16 @@
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    # Loopback only: the host's cloudflared reaches it, nothing on the LAN does.
+    # 8088 because mindmapp already has 8087.
+    ports:
+      - "127.0.0.1:8088:8080"
+    # The only state: places.json and images/. Back this folder up.
+    volumes:
+      - ./data:/data
+    environment:
+      # From Cloudflare Zero Trust: the team domain and this Access application's
+      # AUD tag. The server refuses to start without them rather than start open.
+      ACCESS_TEAM_DOMAIN: ${ACCESS_TEAM_DOMAIN:?set ACCESS_TEAM_DOMAIN in .env}
+      ACCESS_AUD: ${ACCESS_AUD:?set ACCESS_AUD in .env}

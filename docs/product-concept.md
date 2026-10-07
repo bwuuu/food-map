@@ -43,7 +43,7 @@ The "why" is the product. Every place carries:
 | `googlePlaceId` | Used to de-duplicate. Sharing a place twice adds a source and does not create a second place |
 | `why` | The one line I would otherwise forget. **Required.** |
 | `dishes[]` | What to order |
-| `sources[]` | Each one is `{ type, url?, image?, author?, savedAt }`. One place can have many sources, and one post can feed many places |
+| `sources[]` | Each one is `{ type, detail, url, image }` (`detail` is free text: a handle, a friend's name). One place can have many sources, and one post can feed many places |
 | `status` | `want` or `visited` |
 | `rank` | T1–T5, set after visiting (T1 bad … T5 favourite) |
 | `category`, `cuisine`, `price`, `notes` | Optional free text |
@@ -51,7 +51,7 @@ The "why" is the product. Every place carries:
 Only `name`, `lat`, `lng` and `why` are required. This is the v2-plan model, with
 `rank` narrowed to post-visit: v1's "T0 = not tried" is now `status: want`.
 
-The 8 places in `data.js` will be migrated into this model as `places.json`.
+The 7 places from v1 were migrated into this model by `scripts/migrate-v1.ts`.
 
 ## Decisions
 

@@ -1,0 +1,34 @@
+:root {
+  --bg: #1b1b1f;
+  --text: #ececf1;
+  --muted: #a1a1aa;
+  --want: #f4a261;
+  --visited: #43aa8b;
+  --link: #8ab4f8;
+}
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; }
+#map { position: fixed; inset: 0; }
+
+#status {
+  position: fixed; left: 16px; right: 16px; top: 16px; z-index: 1000;
+  margin: 0 auto; max-width: 420px; padding: 12px 16px; border-radius: 10px;
+  background: var(--bg); box-shadow: 0 4px 16px #0008; text-align: center;
+}
+
+/* Leaflet popups: dark, and never wider than a phone allows. */
+.leaflet-popup-content-wrapper, .leaflet-popup-tip { background: var(--bg); color: var(--text); }
+.leaflet-popup-content { margin: 14px 16px; font-size: 14px; line-height: 1.45; }
+.leaflet-container a.leaflet-popup-close-button { color: var(--muted); }
+
+.place h2 { margin: 0 24px 2px 0; font-size: 17px; }
+.place .meta { color: var(--muted); font-size: 13px; }
+.place .why { margin: 10px 0; font-size: 15px; }
+.place h3 { margin: 10px 0 2px; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.place ul { margin: 0; padding-left: 18px; }
+.place .notes { white-space: pre-line; color: var(--muted); font-size: 13px; }
+.place img { display: block; width: 100%; max-height: 220px; object-fit: cover; border-radius: 8px; margin-top: 6px; }
+.place a { color: var(--link); }
+.place .maps { display: inline-block; margin-top: 12px; }
+.badge { display: inline-block; padding: 1px 8px; border-radius: 99px; font-size: 12px; color: #111; }
+.badge.want { background: var(--want); }
+.badge.visited { background: var(--visited); }
