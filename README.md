@@ -15,6 +15,20 @@ docker compose up -d --build
 curl -I http://127.0.0.1:8088    # 401 is correct: only Access-signed requests get in
 ```
 
+### Extraction keys (optional)
+
+Claude reads shared screenshots and Google Places pins them. Both keys live in Bitwarden and are exported only into the shell that starts the container:
+
+```bash
+bw unlock   # then export BW_SESSION as it prints
+export ANTHROPIC_API_KEY="$(bw get password food-map-anthropic)"
+export GOOGLE_PLACES_API_KEY="$(bw get password food-map-google-places)"
+docker compose up -d --build
+docker compose logs app | grep extraction   # "Claude on, Google Places on"
+```
+
+Without them, the inbox works as a manual form and Google Maps share links still place the pin.
+
 Point a cloudflared public hostname at `http://localhost:8088` and protect it with a Cloudflare Access application.
 
 Local development: `npm ci`, then `npm run dev:server` and `npm run dev` in two terminals, then open http://localhost:5178.

@@ -12,7 +12,7 @@
 import { randomBytes } from 'node:crypto';
 import { mkdir, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import type { Draft, Place, SaveInput } from '../place.ts';
+import type { Draft, Place, SaveInput, Suggestion } from '../place.ts';
 
 export const isDraftId = (id: string) => /^d_[0-9a-f]{12}$/.test(id);
 
@@ -70,7 +70,12 @@ export function createStore(dataDir: string) {
       return drafts.filter((d): d is Draft => d !== null).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     },
 
-    async addDraft(share: { title: string | null; text: string | null; url: string | null; image: { bytes: Uint8Array; ext: string } | null }) {
+    draft: getDraft,
+
+    async addDraft(
+      share: { title: string | null; text: string | null; url: string | null; image: { bytes: Uint8Array; ext: string } | null },
+      extraction: Draft['extraction'],
+    ) {
       const id = `d_${randomBytes(6).toString('hex')}`;
       let image: string | null = null;
       if (share.image) {
@@ -78,11 +83,24 @@ export function createStore(dataDir: string) {
         image = `images/${id}.${share.image.ext}`;
         await writeFile(join(dataDir, image), share.image.bytes);
       }
-      const draft: Draft = { id, createdAt: new Date().toISOString(), title: share.title, text: share.text, url: share.url, image };
+      const draft: Draft = {
+        id, createdAt: new Date().toISOString(), title: share.title, text: share.text, url: share.url, image, extraction, suggestion: null,
+      };
       await mkdir(draftsDir, { recursive: true });
       await writeJson(draftFile(id), draft);
       return draft;
     },
+
+    /** Background extraction finished. The draft may already be saved or skipped: then there's nothing to do. */
+    finishExtraction: (id: string, suggestion: Suggestion | null) =>
+      serial(async () => {
+        const draft = await getDraft(id).catch((e) => {
+          if (e instanceof NotFound) return null;
+          throw e;
+        });
+        if (!draft) return;
+        await writeJson(draftFile(id), { ...draft, extraction: suggestion ? 'done' : 'failed', suggestion });
+      }),
 
     /** Draft → place. The screenshot stays in images/ and moves to the place's source. */
     saveDraft: (id: string, input: SaveInput) =>
@@ -93,11 +111,11 @@ export function createStore(dataDir: string) {
           name: input.name,
           lat: input.lat,
           lng: input.lng,
-          address: null,
+          address: input.address,
           area: input.area,
-          googlePlaceId: null,
-          category: null,
-          cuisine: null,
+          googlePlaceId: input.googlePlaceId,
+          category: input.category,
+          cuisine: input.cuisine,
           price: null,
           why: input.why,
           dishes: input.dishes,

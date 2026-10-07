@@ -1,8 +1,8 @@
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './style.css';
-import { SOURCE_TYPES, guessSourceType, type Draft, type Place, type Source } from '../place.ts';
-import { parseCoords } from './coords.ts';
+import { SOURCE_TYPES, guessSourceType, type Draft, type Place, type Source, type Suggestion } from '../place.ts';
+import { parseCoords } from '../coords.ts';
 import { TAIPEI, addTiles, safeImage, safeUrl } from './shared.ts';
 
 const SOURCE_NAMES: Record<Source['type'], string> = { ig: 'Instagram', youtube: 'YouTube', friend: 'Friend', maps: 'Google Maps', web: 'Web' };
@@ -39,6 +39,12 @@ function card(draft: Draft) {
   const why = el('textarea', { required: true, rows: 2 });
   const dishes = el('textarea', { rows: 2 });
   const area = el('input', { autocomplete: 'off' });
+  const category = el('input', { autocomplete: 'off', placeholder: 'e.g. Izakaya' });
+  const cuisine = el('input', { autocomplete: 'off', placeholder: 'e.g. Japanese' });
+  // From Google Places, not shown: kept so a saved place can be matched and looked up later.
+  let address: string | null = null;
+  let googlePlaceId: string | null = null;
+  const extractStatus = el('p', { className: 'extract-status', role: 'status', hidden: true });
   const sourceType = el('select', {}, ...SOURCE_TYPES.map((t) => el('option', { value: t, selected: t === source }, SOURCE_NAMES[t])));
   const sourceDetail = el('input', { autocomplete: 'off', placeholder: '@handle or name' });
   const coords = el('input', { autocomplete: 'off', inputMode: 'decimal', placeholder: 'Paste lat, lng or a Maps link' });
@@ -60,10 +66,12 @@ function card(draft: Draft) {
       ...(link ? [el('a', { href: link, target: '_blank', rel: 'noopener noreferrer' }, 'Open what was shared ↗')] : []),
       el('small', {}, `Shared ${new Date(draft.createdAt).toLocaleString()}`),
     ),
+    extractStatus,
     field('Name *', name),
     field('Why I saved it *', why, 'The one thing you’d otherwise forget.'),
     field('What to order', dishes, 'One per line.'),
     field('Area', area, 'e.g. Zhongshan District'),
+    el('div', { className: 'row' }, field('Category', category), field('Cuisine', cuisine)),
     el('div', { className: 'row' }, field('Source', sourceType), field('From', sourceDetail)),
     field('Pin *', coords),
     mapDiv,
@@ -91,11 +99,60 @@ function card(draft: Draft) {
   coords.addEventListener('input', () => {
     const c = parseCoords(coords.value);
     if (c) placePin(c, true);
-    else if (coords.value.includes('goo.gl')) pinStatus.textContent = 'Short Google Maps links can’t be read yet. Tap the map instead.';
+    else if (coords.value.includes('goo.gl')) pinStatus.textContent = 'Short links are read when shared, not pasted. Paste the full link or tap the map.';
   });
   // A Maps link shared directly may already carry coordinates.
   const fromShare = parseCoords(draft.url ?? '') ?? parseCoords(draft.text ?? '');
   if (fromShare) placePin(fromShare, true);
+
+  /** Fill only what's still empty: never overwrite something I typed while Claude was reading. */
+  const applySuggestion = (sg: Suggestion) => {
+    const fill = (input: HTMLInputElement | HTMLTextAreaElement, value: string | null) => {
+      if (value && !input.value.trim()) input.value = value;
+    };
+    fill(name, sg.name);
+    fill(why, sg.why);
+    fill(dishes, sg.dishes.join('\n'));
+    fill(area, sg.area);
+    fill(category, sg.category);
+    fill(cuisine, sg.cuisine);
+    address = sg.address;
+    googlePlaceId = sg.googlePlaceId;
+    if (!pin && sg.lat !== null && sg.lng !== null) placePin([sg.lat, sg.lng], true);
+    const warn = sg.confidence === 'low' || sg.note;
+    extractStatus.textContent = warn ? `⚠️ ${sg.note ?? 'Not sure about this one. Check every field.'}` : '✨ Filled in from the share. Check it before saving.';
+    extractStatus.classList.toggle('warn', !!warn);
+    extractStatus.hidden = false;
+  };
+
+  const showExtraction = (d: Draft) => {
+    if (d.extraction === 'done' && d.suggestion) return applySuggestion(d.suggestion);
+    if (d.extraction === 'failed') {
+      extractStatus.textContent = 'Couldn’t read this share. Fill it in yourself.';
+      extractStatus.classList.add('warn');
+      extractStatus.hidden = false;
+    }
+  };
+
+  if (draft.extraction === 'pending') {
+    extractStatus.textContent = 'Reading the share…';
+    extractStatus.hidden = false;
+    const started = Date.now();
+    const poll = async () => {
+      if (!form.isConnected) return; // saved or skipped meanwhile
+      const res = await fetch(`/api/drafts/${draft.id}`).catch(() => null);
+      const latest = res?.ok ? ((await res.json()) as Draft) : null;
+      if (latest && latest.extraction !== 'pending') return showExtraction(latest);
+      if (Date.now() - started > 90_000) {
+        extractStatus.textContent = 'Still reading. Reload later, or fill it in yourself.';
+        return;
+      }
+      setTimeout(poll, 1500);
+    };
+    setTimeout(poll, 1500);
+  } else {
+    showExtraction(draft);
+  }
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -113,6 +170,7 @@ function card(draft: Draft) {
       body: JSON.stringify({
         name: name.value, why: why.value, lat: latlng!.lat, lng: latlng!.lng,
         dishes: dishes.value.split('\n'), area: area.value, sourceType: sourceType.value, sourceDetail: sourceDetail.value,
+        category: category.value, cuisine: cuisine.value, address, googlePlaceId,
       }),
     });
     if (!res.ok) {

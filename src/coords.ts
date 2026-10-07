@@ -20,3 +20,15 @@ export function parseCoords(input: string): [number, number] | null {
   }
   return null;
 }
+
+/** The place name in a Google Maps place URL: …/maps/place/<name>/… */
+export function placeNameFromMapsUrl(url: string): string | null {
+  const m = url.match(/\/maps\/place\/([^/@?]+)/);
+  if (!m) return null;
+  try {
+    const name = decodeURIComponent(m[1]!.replace(/\+/g, ' ')).trim();
+    return name || null;
+  } catch {
+    return null;
+  }
+}
