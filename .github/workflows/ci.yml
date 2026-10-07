@@ -18,3 +18,21 @@ jobs:
       - run: npm ci
       - run: npm run check
       - run: npm run build
+
+  container:
+    name: image builds and starts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t food-map:ci .
+      # The real image, the real entry point: a module missing from the image
+      # crashes here instead of on the homelab (#14). DEV_ACCOUNT skips Access.
+      - name: Start it and wait for a page
+        run: |
+          mkdir -p data && echo '[]' > data/places.json && sudo chown -R 1000:1000 data
+          docker run -d --name app -p 8080:8080 -e DEV_ACCOUNT=ci -v "$PWD/data:/data" food-map:ci
+          if ! timeout 30 bash -c 'until curl -sf http://localhost:8080/ >/dev/null; do sleep 1; done'; then
+            docker logs app; exit 1
+          fi
+          curl -sf http://localhost:8080/api/places
+          docker logs app
