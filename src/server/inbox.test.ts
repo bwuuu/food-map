@@ -1,8 +1,8 @@
 import { mkdtemp, readdir, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { beforeEach, describe, expect, it } from 'vitest';
-import type { Draft, Place } from '../place.ts';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Draft, Place, Suggestion } from '../place.ts';
 import { createApp, parseSaveInput } from './app.ts';
 
 let dataDir: string;
@@ -26,7 +26,7 @@ const places = async () => (await (await app.request('/api/places')).json()) as 
 const save = (id: string, body: unknown) =>
   app.request(`/api/drafts/${id}/save`, { method: 'POST', body: JSON.stringify(body), headers: { 'content-type': 'application/json' } });
 
-const valid = { name: '芮秋 Rachel', why: 'Dutch baby pancake', lat: 25.0512345, lng: 121.5612345, dishes: ['Dutch baby'], sourceType: 'ig', sourceDetail: '@foodie' };
+const valid = { name: '芮秋 Rachel', why: 'Dutch baby pancake', lat: 25.0512345, lng: 121.5612345, dishes: ['Dutch baby'], sourceType: 'ig', sourceDetail: '@foodie', category: 'Brunch', cuisine: null, address: 'Songshan District, Taipei', googlePlaceId: 'ChIJrachel' };
 
 describe('share → inbox → map', () => {
   it('stores a shared screenshot as a draft and redirects to it', async () => {
@@ -46,6 +46,7 @@ describe('share → inbox → map', () => {
     const [place] = await places();
     expect(place).toMatchObject({
       name: '芮秋 Rachel', why: 'Dutch baby pancake', lat: 25.0512345, status: 'want', rank: null,
+      googlePlaceId: 'ChIJrachel', category: 'Brunch', address: 'Songshan District, Taipei',
       sources: [{ type: 'ig', detail: '@foodie', url: 'https://www.instagram.com/p/abc/', image: draft!.image }],
     });
     expect(await drafts()).toEqual([]);
@@ -99,6 +100,51 @@ describe('parseSaveInput', () => {
   it('trims, drops empty dishes, and falls back to web for an unknown source type', () => {
     expect(parseSaveInput({ ...valid, name: '  Rachel ', dishes: ['a', ' ', 3], sourceType: 'tiktok', area: '' })).toEqual({
       name: 'Rachel', why: 'Dutch baby pancake', lat: 25.0512345, lng: 121.5612345, dishes: ['a'], area: null, sourceType: 'web', sourceDetail: '@foodie',
+      category: 'Brunch', cuisine: null, address: 'Songshan District, Taipei', googlePlaceId: 'ChIJrachel',
     });
+  });
+});
+
+describe('background extraction', () => {
+  const suggestion: Suggestion = {
+    name: 'Rachel', why: 'Dutch baby', dishes: [], area: null, category: null, cuisine: null,
+    lat: 25.05, lng: 121.56, address: null, googlePlaceId: null, confidence: 'high', note: null,
+  };
+  const withExtract = (extract: () => Promise<Suggestion>) =>
+    createApp({ identify: async () => ({ email: 'me@example.com' }), dataDir, webDir: dataDir, extract });
+
+  it('redirects before extraction finishes, then fills in the draft', async () => {
+    let finish!: (s: Suggestion) => void;
+    app = withExtract(() => new Promise((resolve) => (finish = resolve)));
+    expect((await share({ text: 'x' })).status).toBe(303);
+    const [draft] = await drafts();
+    expect(draft).toMatchObject({ extraction: 'pending', suggestion: null });
+
+    finish(suggestion);
+    await vi.waitFor(async () => {
+      expect(await (await app.request(`/api/drafts/${draft!.id}`)).json()).toMatchObject({ extraction: 'done', suggestion });
+    });
+  });
+
+  it('marks the draft failed when extraction throws, and keeps the share', async () => {
+    app = withExtract(async () => { throw new Error('boom'); });
+    await share({ text: 'x' });
+    await vi.waitFor(async () => expect((await drafts())[0]).toMatchObject({ extraction: 'failed', text: 'x' }));
+  });
+
+  it('does not bring back a draft that was skipped while extraction ran', async () => {
+    let finish!: (s: Suggestion) => void;
+    app = withExtract(() => new Promise((resolve) => (finish = resolve)));
+    await share({ text: 'x' });
+    const [draft] = await drafts();
+    await app.request(`/api/drafts/${draft!.id}`, { method: 'DELETE' });
+    finish(suggestion);
+    await new Promise((r) => setTimeout(r, 50));
+    expect(await drafts()).toEqual([]);
+  });
+
+  it('without an extractor, drafts are marked off', async () => {
+    await share({ text: 'x' });
+    expect((await drafts())[0]).toMatchObject({ extraction: 'off' });
   });
 });

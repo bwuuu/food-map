@@ -14,3 +14,8 @@ services:
       # AUD tag. The server refuses to start without them rather than start open.
       ACCESS_TEAM_DOMAIN: ${ACCESS_TEAM_DOMAIN:?set ACCESS_TEAM_DOMAIN in .env}
       ACCESS_AUD: ${ACCESS_AUD:?set ACCESS_AUD in .env}
+      # Optional: screenshot reading (Claude) and pins (Google Places). Without them
+      # the inbox still works, and Google Maps links still resolve. Credentials come
+      # from Bitwarden at deploy time and are never written to .env (see README).
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      GOOGLE_PLACES_API_KEY: ${GOOGLE_PLACES_API_KEY:-}

@@ -39,6 +39,27 @@ export interface Draft {
   url: string | null;
   /** Path under the data directory, e.g. "images/d_….jpg". */
   image: string | null;
+  /** Background extraction (Sprint 2). "off" when no API keys are configured. */
+  extraction: 'off' | 'pending' | 'done' | 'failed';
+  suggestion: Suggestion | null;
+}
+
+/** What Claude and Google Places think the shared place is. Every field may be missing. */
+export interface Suggestion {
+  name: string | null;
+  why: string | null;
+  dishes: string[];
+  area: string | null;
+  category: string | null;
+  cuisine: string | null;
+  lat: number | null;
+  lng: number | null;
+  address: string | null;
+  googlePlaceId: string | null;
+  /** "low" when the location wasn't confirmed by Google Places or a Maps link: no automatic pin. */
+  confidence: 'high' | 'low';
+  /** Shown in the inbox when something needs a human, e.g. "No Google Places match". */
+  note: string | null;
 }
 
 /** What the inbox sends to turn a draft into a place. */
@@ -51,6 +72,10 @@ export interface SaveInput {
   area: string | null;
   sourceType: Source['type'];
   sourceDetail: string | null;
+  category: string | null;
+  cuisine: string | null;
+  address: string | null;
+  googlePlaceId: string | null;
 }
 
 export const SOURCE_TYPES: Source['type'][] = ['ig', 'youtube', 'friend', 'maps', 'web'];

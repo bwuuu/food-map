@@ -3,6 +3,7 @@ import { bodyLimit } from 'hono/body-limit';
 import { serveStatic } from '@hono/node-server/serve-static';
 import { SOURCE_TYPES, type SaveInput, type Source } from '../place.ts';
 import { Unauthorized, type Identify } from './auth.ts';
+import type { Extract, ImageInput } from './extract.ts';
 import { NotFound, createStore, imageExtension } from './store.ts';
 
 const MAX_UPLOAD = 20 * 1024 * 1024; // phone screenshots are 1–5 MB
@@ -26,10 +27,19 @@ export function parseSaveInput(body: unknown): SaveInput | string {
   }
   const sourceType = SOURCE_TYPES.includes(b.sourceType as Source['type']) ? (b.sourceType as Source['type']) : 'web';
   const dishes = Array.isArray(b.dishes) ? b.dishes.map((d) => text(d, 300)).filter((d): d is string => !!d) : [];
-  return { name, why, lat, lng, dishes, area: text(b.area, 100), sourceType, sourceDetail: text(b.sourceDetail, 200) };
+  return {
+    name, why, lat, lng, dishes,
+    area: text(b.area, 100),
+    sourceType,
+    sourceDetail: text(b.sourceDetail, 200),
+    category: text(b.category, 100),
+    cuisine: text(b.cuisine, 100),
+    address: text(b.address, 300),
+    googlePlaceId: text(b.googlePlaceId, 300),
+  };
 }
 
-export function createApp({ identify, dataDir, webDir }: { identify: Identify; dataDir: string; webDir: string }) {
+export function createApp({ identify, dataDir, webDir, extract }: { identify: Identify; dataDir: string; webDir: string; extract?: Extract }) {
   const app = new Hono();
   const store = createStore(dataDir);
 
@@ -52,22 +62,32 @@ export function createApp({ identify, dataDir, webDir }: { identify: Identify; d
 
   app.get('/api/places', async (c) => c.json(await store.places()));
   app.get('/api/drafts', async (c) => c.json(await store.drafts()));
+  app.get('/api/drafts/:id', async (c) => c.json(await store.draft(c.req.param('id'))));
 
   // The Android share sheet posts here (manifest.webmanifest → share_target).
   app.post('/share', bodyLimit({ maxSize: MAX_UPLOAD, onError: (c) => c.text('That file is too large.', 413) }), async (c) => {
     const form = await c.req.formData();
     const image = form.get('image');
-    let upload: { bytes: Uint8Array; ext: string } | null = null;
+    let upload: { bytes: Uint8Array; ext: string; mediaType: ImageInput['mediaType'] } | null = null;
     if (image instanceof File && image.size > 0) {
       const ext = imageExtension(image.type);
       if (!ext) return c.text('Only JPEG, PNG, WebP or GIF images can be shared.', 415);
-      upload = { bytes: new Uint8Array(await image.arrayBuffer()), ext };
+      upload = { bytes: new Uint8Array(await image.arrayBuffer()), ext, mediaType: image.type as ImageInput['mediaType'] };
     }
     const title = text(form.get('title'), 500);
     const sharedText = text(form.get('text'));
     const url = text(form.get('url'), 2000) ?? firstUrl(sharedText);
     if (!title && !sharedText && !url && !upload) return c.text('Nothing was shared.', 400);
-    const draft = await store.addDraft({ title, text: sharedText, url, image: upload });
+    const draft = await store.addDraft({ title, text: sharedText, url, image: upload }, extract ? 'pending' : 'off');
+    // Not awaited: the share is safe on disk, and the inbox polls for the result.
+    if (extract) {
+      extract(draft, upload)
+        .then((suggestion) => store.finishExtraction(draft.id, suggestion))
+        .catch(async (e) => {
+          console.error(`[extract] ${draft.id} failed:`, e);
+          await store.finishExtraction(draft.id, null).catch(() => {});
+        });
+    }
     return c.redirect(`/inbox.html#${draft.id}`, 303);
   });
 

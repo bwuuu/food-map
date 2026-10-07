@@ -81,6 +81,6 @@ Extraction then makes it faster; it isn't what makes it work.
 | Question | Default if you don't decide |
 |---|---|
 | Hostname | `food.ottormates.com` |
-| Claude model for extraction | The cheapest current model that passes the Sprint 2 fixtures; start with Haiku 4.5 and move up only if it misreads Chinese |
+| Claude model for extraction | `claude-opus-5-5` at low effort (about 2–3¢ a share). To cut cost, switch to `claude-haiku-4-5` in `src/server/extract.ts`, which also means removing `effort` and `fallbacks` (Haiku accepts neither) |
 | Where nightly backups go | Decided in Sprint 3 |
 | Public read-only map | No (see concept, "Three worth your disagreement") |

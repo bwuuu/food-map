@@ -19,9 +19,9 @@ docker compose up -d --build   # production, 127.0.0.1:8088 (needs .env, see .en
 ## Layout
 
 - `src/place.ts`: the `Place` / `Source` model, shared by server, page and scripts
-- `src/server/`: Hono. `auth.ts` verifies the Cloudflare Access JWT on **every** route (pages included). `app.ts` has the routes and the input checks (`parseSaveInput`): `POST /share` (the Android share target), `/api/places`, `/api/drafts`, save and skip, `/images/*` from the data dir, and `dist/`. `store.ts` owns every file read and write (atomic, serialized)
+- `src/server/`: Hono. `auth.ts` verifies the Cloudflare Access JWT on **every** route (pages included). `app.ts` has the routes and the input checks (`parseSaveInput`): `POST /share` (the Android share target), `/api/places`, `/api/drafts`, save and skip, `/images/*` from the data dir, and `dist/`. `store.ts` owns every file read and write (atomic, serialized). `extract.ts` runs after each share, in the background: Maps link → coordinates (only goo.gl is ever fetched), screenshot → Claude (`claude-opus-5-5`, structured output, refusal fallback), name → Google Places. Each step may fail alone
 - `src/web/`: two pages (Leaflet, vanilla TS). `index.html`/`main.ts` is the map; `inbox.html`/`inbox.ts` turns shares into places. `public/manifest.webmanifest` holds the `share_target`. Shared text is untrusted: build DOM with `textContent`, or `esc()` in HTML strings
-- `src/web/coords.ts`: parses pasted coordinates and Google Maps URLs. Kept free of Leaflet so it runs in tests
+- `src/coords.ts`: parses pasted coordinates and Google Maps URLs. Shared by the server (Maps links) and the inbox
 - `scripts/migrate-v1.ts`: one-off v1 `data.js` → `data/places.json`. Refuses to overwrite
 - `data/` (gitignored, mounted at `/data`): `places.json`, `drafts/` (inbox), `images/`. **This is the only copy of the data**; v1's original is on branch `legacy/v1`
 
@@ -30,4 +30,6 @@ docker compose up -d --build   # production, 127.0.0.1:8088 (needs .env, see .en
 - Imports name the `.ts` file, and only erasable TypeScript is allowed (no enums, no namespaces), because Node runs the source.
 - The server must refuse to start without `ACCESS_TEAM_DOMAIN` + `ACCESS_AUD`. `DEV_ACCOUNT` is for local development only.
 - Coordinates keep full precision.
+- Extraction never blocks or loses a share, and the inbox never overwrites a field already typed.
+- API keys are optional, come from Bitwarden at deploy time, and are never committed or written to `.env`. Tests use fixtures, never live APIs.
 - Workflow is the devkit contract: an issue first, then a branch and a PR. UI checks go through `devkit:ui-verifier` using `.claude/skills/verify/SKILL.md`.
