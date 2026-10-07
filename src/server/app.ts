@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import { serveStatic } from '@hono/node-server/serve-static';
-import { SOURCE_TYPES, type SaveInput, type Source } from '../place.ts';
+import { RANKS, SOURCE_TYPES, type SaveInput, type Source, type VisitInput } from '../place.ts';
 import { Unauthorized, type Identify } from './auth.ts';
 import type { Extract, ImageInput } from './extract.ts';
 import { NotFound, createStore, imageExtension } from './store.ts';
@@ -39,6 +39,13 @@ export function parseSaveInput(body: unknown): SaveInput | string {
   };
 }
 
+export function parseVisitInput(body: unknown): VisitInput | string {
+  if (typeof body !== 'object' || body === null) return 'expected a JSON object';
+  const b = body as Record<string, unknown>;
+  if (!RANKS.includes(b.rank as VisitInput['rank'])) return 'rank must be T1–T5';
+  return { rank: b.rank as VisitInput['rank'], note: text(b.note, 1000) };
+}
+
 export function createApp({ identify, dataDir, webDir, extract }: { identify: Identify; dataDir: string; webDir: string; extract?: Extract }) {
   const app = new Hono();
   const store = createStore(dataDir);
@@ -55,7 +62,7 @@ export function createApp({ identify, dataDir, webDir, extract }: { identify: Id
   });
 
   app.onError((e, c) => {
-    if (e instanceof NotFound) return c.json({ error: 'no such draft' }, 404);
+    if (e instanceof NotFound) return c.json({ error: 'not found' }, 404);
     console.error(e);
     return c.json({ error: 'something went wrong' }, 500);
   });
@@ -95,6 +102,12 @@ export function createApp({ identify, dataDir, webDir, extract }: { identify: Id
     const input = parseSaveInput(await c.req.json().catch(() => null));
     if (typeof input === 'string') return c.json({ error: input }, 400);
     return c.json(await store.saveDraft(c.req.param('id'), input));
+  });
+
+  app.post('/api/places/:id/visit', async (c) => {
+    const visit = parseVisitInput(await c.req.json().catch(() => null));
+    if (typeof visit === 'string') return c.json({ error: visit }, 400);
+    return c.json(await store.recordVisit(c.req.param('id'), visit));
   });
 
   app.delete('/api/drafts/:id', async (c) => {

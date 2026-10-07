@@ -78,6 +78,17 @@ export interface SaveInput {
   googlePlaceId: string | null;
 }
 
+/** What the map sends after a visit. */
+export interface VisitInput {
+  rank: NonNullable<Place['rank']>;
+  note: string | null;
+}
+
+export const RANKS: VisitInput['rank'][] = ['T1', 'T2', 'T3', 'T4', 'T5'];
+export const RANK_LABELS: Record<VisitInput['rank'], string> = {
+  T1: 'Bad', T2: 'Not worth it', T3: 'Okay', T4: 'Would go back', T5: 'Favourite',
+};
+
 export const SOURCE_TYPES: Source['type'][] = ['ig', 'youtube', 'friend', 'maps', 'web'];
 
 /** Best guess at where a share came from; the inbox lets me correct it. */

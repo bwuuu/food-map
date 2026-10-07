@@ -12,6 +12,22 @@
     <div id="map" role="application" aria-label="Map of saved places"></div>
     <p id="status" role="status" hidden></p>
     <a id="inbox-link" class="fab" href="/inbox.html">Inbox <span id="inbox-count" class="count"></span></a>
+    <div class="map-actions">
+      <button id="filter-toggle" class="fab" type="button" aria-expanded="false" aria-controls="filters">Filter <span id="filter-count" class="count"></span></button>
+      <button id="near-me" class="fab" type="button">Near me</button>
+    </div>
+    <section id="filters" class="filters" hidden aria-label="Filters">
+      <div id="filter-body"></div>
+      <div class="legend" aria-label="Pin colours">
+        <span><i style="background:#f4a261"></i>Want to go</span>
+        <span><i style="background:#e63946"></i>T1 Bad</span>
+        <span><i style="background:#8d99ae"></i>T2 Not worth it</span>
+        <span><i style="background:#a8dadc"></i>T3 Okay</span>
+        <span><i style="background:#43aa8b"></i>T4 Would go back</span>
+        <span><i style="background:#c77dff"></i>T5 Favourite</span>
+      </div>
+      <div class="filter-foot"><span id="filter-summary"></span><button id="filter-reset" type="button" class="quiet">Reset</button></div>
+    </section>
     <script type="module" src="./main.ts"></script>
   </body>
 </html>
