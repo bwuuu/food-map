@@ -174,7 +174,9 @@ function render() {
         maxWidth: Math.min(320, window.innerWidth - 48),
         // Long popups scroll inside instead of running off the top of a phone screen.
         maxHeight: Math.min(480, window.innerHeight * 0.6),
-        autoPanPadding: [16, 16],
+        // Keep the popup clear of the Filter / Near me / Inbox buttons (16 px + 44 px + gap).
+        autoPanPaddingTopLeft: [16, 76],
+        autoPanPaddingBottomRight: [16, 16],
       })
       .addTo(pins);
   }
