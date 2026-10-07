@@ -31,14 +31,14 @@ Run the **built** app through the real server, not the Vite dev server: it's one
 Put scripts and screenshots in the directory the brief names, never in the repo. Don't edit repo files. Stop the server you started.
 
 ## App knowledge and known quirks
-- **One page: the map** (`#map`, Leaflet). On load it fetches `/api/places` and fits the view to every place (Taipei).
+- **One page: the map** (`#map`, Leaflet, OpenStreetMap tiles darkened by a CSS filter). On load it fetches `/api/places` and fits the view to every place (Taipei).
 - **Pins** are SVG circles: `path.leaflet-interactive`. Orange (`--want`) means "want to go"; green (`--visited`) means visited. Click a pin to open its popup.
 - **Popup:** `.leaflet-popup-content .place`. It contains `h2` (the name), a status badge, the meta line, `.why`, then "Order", "Saved because of" (sources, which can include a screenshot `img` from `/images/…`), "Notes" and an "Open in Google Maps" link.
 - **Status banner:** `#status` shows "No places yet." or "Could not load places…".
 - With the real data there are 7 places, all "want to go". 芮秋 Rachel and landed have screenshots.
-- **External requests are expected** only to `*.basemaps.cartocdn.com` (map tiles). Any other host is a finding.
+- **External requests are expected** only to `tile.openstreetmap.org` (map tiles). Any other host is a finding.
 - Tiles load asynchronously. Wait for `img.leaflet-tile-loaded` before taking screenshots. If the sandbox has no internet, tiles stay grey: report that, it isn't an app failure.
-- Leaflet pans the map to fit an opened popup (`autoPanPadding` 16 px). Take the screenshot after the pan settles (~300 ms).
+- Leaflet pans the map to fit an opened popup (`autoPanPadding` 16 px). Popups are capped at 60% of the viewport height and scroll inside (`.leaflet-popup-scrolled`). Take the screenshot after the pan settles (~300 ms).
 
 ## What "verified" means
 - Every numbered check in the brief gets PASS, FAIL or NOT VERIFIABLE, each with a screenshot path that shows it, at both sizes.
