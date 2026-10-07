@@ -40,8 +40,8 @@ function card(draft: Draft) {
   const dishes = el('textarea', { rows: 2 });
   const area = el('input', { autocomplete: 'off' });
   const sourceType = el('select', {}, ...SOURCE_TYPES.map((t) => el('option', { value: t, selected: t === source }, SOURCE_NAMES[t])));
-  const sourceDetail = el('input', { autocomplete: 'off', placeholder: '@handle, friend’s name…' });
-  const coords = el('input', { autocomplete: 'off', inputMode: 'decimal', placeholder: 'Tap the map, or paste “lat, lng” / a Google Maps link' });
+  const sourceDetail = el('input', { autocomplete: 'off', placeholder: '@handle or name' });
+  const coords = el('input', { autocomplete: 'off', inputMode: 'decimal', placeholder: 'Paste lat, lng or a Maps link' });
   const pinStatus = el('small', { className: 'pin-status' }, 'No pin yet: tap the map where the place is.');
   const mapDiv = el('div', { className: 'mini-map' });
   const save = el('button', { type: 'submit', className: 'primary' }, 'Save to map');
@@ -84,6 +84,7 @@ function card(draft: Draft) {
   };
   const showPin = () => {
     const p = pin!.getLatLng();
+    coords.value = `${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}`;
     pinStatus.textContent = `Pin at ${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}. Drag it to adjust.`;
   };
   map.on('click', (e) => placePin(e.latlng));
