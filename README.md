@@ -39,7 +39,11 @@ Without them, the inbox works as a manual form and Google Maps share links still
 
 To restore: `docker compose down`, `tar -xzf <archive> -C data`, then `docker compose up -d`.
 
-Point a cloudflared public hostname at `http://localhost:8088` and protect it with a Cloudflare Access application.
+Point a cloudflared public hostname at `http://localhost:8088` and protect it with a Cloudflare Access application. Then add a **second** Access application for the same hostname with path `pwa`, whose only policy is **Bypass → Everyone**. Browsers fetch the app manifest and icons without your login cookie, and without them the app can't install as a share target. Only those static files live under `/pwa/`.
+
+### Install on Android
+
+Install from **Chrome** (or Samsung Internet): ⋮ → **Install app**. It must appear in the app drawer, not just as a home-screen shortcut. **Brave can't do this:** on Android it only creates shortcuts, which never show up in the share sheet ([brave/brave-browser#7357](https://github.com/brave/brave-browser/issues/7357)). Brave can stay your default browser; only the install needs Chrome.
 
 Local development: `npm ci`, then `npm run dev:server` and `npm run dev` in two terminals, then open http://localhost:5178.
 

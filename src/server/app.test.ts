@@ -14,6 +14,8 @@ beforeAll(async () => {
   await writeFile(join(root, 'data/images/a.jpg'), 'jpg');
   await writeFile(join(root, 'data/secret.txt'), 'nope');
   await writeFile(join(root, 'web/index.html'), '<h1>map</h1>');
+  await mkdir(join(root, 'web/pwa'));
+  await writeFile(join(root, 'web/pwa/manifest.webmanifest'), '{"name":"Food Map"}');
 });
 
 const app = (signedIn: boolean) =>
@@ -30,6 +32,20 @@ describe('app', () => {
   it('serves nothing to a request Access did not sign, pages included', async () => {
     for (const path of ['/', '/api/places', '/images/a.jpg']) {
       expect((await app(false).request(path)).status).toBe(401);
+    }
+  });
+
+  it('serves the manifest and icons without sign-in, so the app can install (#16)', async () => {
+    const res = await app(false).request('/pwa/manifest.webmanifest');
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ name: 'Food Map' });
+  });
+
+  it('keeps everything outside /pwa/ private, however the path is written', async () => {
+    for (const path of ['/pwa/missing.png', '/pwa/../api/places', '/pwa/%2e%2e/index.html', '/pwa/..%2f..%2fdata/places.json', '/pwa/..%2Findex.html', '/pwa']) {
+      const res = await app(false).request(path);
+      expect([401, 404]).toContain(res.status);
+      expect(await res.text()).not.toMatch(/Rachel|map<\/h1>/);
     }
   });
 

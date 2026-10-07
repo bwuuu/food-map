@@ -50,7 +50,12 @@ export function createApp({ identify, dataDir, webDir, extract }: { identify: Id
   const app = new Hono();
   const store = createStore(dataDir);
 
-  // Everything is private, pages included: one rule, nothing to forget later.
+  // The manifest and icons are public: browsers and Chrome's WebAPK minting fetch
+  // them without my cookie, and without them the app can't install as a share
+  // target (#16). Static and non-sensitive; nothing else is served from /pwa/.
+  app.use('/pwa/*', serveStatic({ root: webDir }));
+
+  // Everything else is private, pages included.
   app.use('*', async (c, next) => {
     try {
       await identify(c.req.raw.headers);
@@ -71,7 +76,7 @@ export function createApp({ identify, dataDir, webDir, extract }: { identify: Id
   app.get('/api/drafts', async (c) => c.json(await store.drafts()));
   app.get('/api/drafts/:id', async (c) => c.json(await store.draft(c.req.param('id'))));
 
-  // The Android share sheet posts here (manifest.webmanifest → share_target).
+  // The Android share sheet posts here (pwa/manifest.webmanifest → share_target).
   app.post('/share', bodyLimit({ maxSize: MAX_UPLOAD, onError: (c) => c.text('That file is too large.', 413) }), async (c) => {
     const form = await c.req.formData();
     const image = form.get('image');
