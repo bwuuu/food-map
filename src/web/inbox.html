@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#1b1b1f" />
+    <title>Inbox · Food Map</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/icon.svg" />
+  </head>
+  <body class="inbox">
+    <header class="bar">
+      <a href="/" class="back">‹ Map</a>
+      <h1>Inbox</h1>
+    </header>
+    <main id="drafts"></main>
+    <p id="empty" class="empty" hidden>
+      Nothing waiting. Share a screenshot, an Instagram post or a Google Maps place to <strong>Food Map</strong> from your phone's share menu.
+    </p>
+    <p id="toast" class="toast" role="status" hidden></p>
+    <script type="module" src="./inbox.ts"></script>
+  </body>
+</html>

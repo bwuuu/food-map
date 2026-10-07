@@ -19,10 +19,11 @@ docker compose up -d --build   # production, 127.0.0.1:8088 (needs .env, see .en
 ## Layout
 
 - `src/place.ts`: the `Place` / `Source` model, shared by server, page and scripts
-- `src/server/`: Hono. `auth.ts` verifies the Cloudflare Access JWT on **every** route (pages included); `app.ts` serves `/api/places`, `/images/*` from the data dir, and `dist/`
-- `src/web/`: the map page (Leaflet, vanilla TS). All place text is escaped: it will come from extracted captures
+- `src/server/`: Hono. `auth.ts` verifies the Cloudflare Access JWT on **every** route (pages included). `app.ts` has the routes and the input checks (`parseSaveInput`): `POST /share` (the Android share target), `/api/places`, `/api/drafts`, save and skip, `/images/*` from the data dir, and `dist/`. `store.ts` owns every file read and write (atomic, serialized)
+- `src/web/`: two pages (Leaflet, vanilla TS). `index.html`/`main.ts` is the map; `inbox.html`/`inbox.ts` turns shares into places. `public/manifest.webmanifest` holds the `share_target`. Shared text is untrusted: build DOM with `textContent`, or `esc()` in HTML strings
+- `src/web/coords.ts`: parses pasted coordinates and Google Maps URLs. Kept free of Leaflet so it runs in tests
 - `scripts/migrate-v1.ts`: one-off v1 `data.js` → `data/places.json`. Refuses to overwrite
-- `data/` (gitignored, mounted at `/data`): `places.json` + `images/`. **This is the only copy of the data**; v1's original is on branch `legacy/v1`
+- `data/` (gitignored, mounted at `/data`): `places.json`, `drafts/` (inbox), `images/`. **This is the only copy of the data**; v1's original is on branch `legacy/v1`
 
 ## Rules
 
