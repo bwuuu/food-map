@@ -7,7 +7,7 @@ A personal restaurant tracking map built with Leaflet.js and pure HTML/CSS/JS. I
 ## ✨ Features
 
 - 🗺️ **Interactive Map** - Powered by Leaflet.js with OpenStreetMap tiles
-- ⭐ **Tier Rating System** - T0 (Must Try) to T5 (Skip)
+- ⭐ **Tier Rating System** - T0 (Not Tried) to T5 (Favorite)
 - 🔍 **Filter by Rank & Area** - Find exactly what you want
 - 💰 **Price Range Display** - Know what to expect
 - 📤 **Google Maps Navigation** - One-click directions
@@ -68,12 +68,12 @@ Edit the `tierColors` object in `index.html`:
 
 ```javascript
 const tierColors = {
-    'T0': '#e63946',  // Must Try
-    'T1': '#f4a261',  // Excellent
-    'T2': '#e9c46a',  // Good
-    'T3': '#a8dadc',  // Average
-    'T4': '#457b9d',  // Below Average
-    'T5': '#6c757d',  // Skip
+    'T0': '#6c757d',  // Not Tried
+    'T1': '#e63946',  // Bad
+    'T2': '#f4a261',  // Not Worth It
+    'T3': '#e9c46a',  // Okay
+    'T4': '#a8dadc',  // Would Go Back
+    'T5': '#43aa8b',  // Favorite
 };
 ```
 

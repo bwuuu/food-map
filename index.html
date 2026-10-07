@@ -76,8 +76,11 @@
         }
         .legend.show { transform: translate(0, -50%); }
         .legend h4 { margin-bottom: 15px; font-size: 16px; color: #e63946; }
-        .legend-item { display: flex; align-items: center; margin: 8px 0; }
-        .legend-color { width: 20px; height: 20px; margin-right: 10px; border-radius: 50%; }
+        .legend-item { display: flex; align-items: center; margin: 4px 0; padding: 6px 8px; border-radius: 6px; }
+        .legend-color { width: 20px; height: 20px; margin-right: 10px; border-radius: 50%; flex-shrink: 0; }
+        .legend-filter { cursor: pointer; user-select: none; transition: background 0.15s; }
+        .legend-filter:hover { background: rgba(255,255,255,0.08); }
+        .legend-filter.active { background: rgba(230,57,70,0.25); box-shadow: inset 3px 0 0 #e63946; }
         
         /* Filter Panel */
         .filter-panel {
@@ -158,7 +161,6 @@
             font-weight: bold;
             color: #fff;
         }
-        .badge.status { background: #666; }
         .badge.priority { text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
         
         .popup-label { 
@@ -192,7 +194,9 @@
         }
         .inspiration-link:hover { color: #004c99; text-decoration: underline; }
         
-        .popup-nav-btn {
+        .leaflet-popup-content a.popup-nav-btn,
+        .leaflet-popup-content a.popup-nav-btn:visited,
+        .leaflet-popup-content a.popup-nav-btn:hover {
             display: block;
             margin-top: 12px;
             padding: 10px 15px;
@@ -205,7 +209,190 @@
             border-radius: 6px;
             transition: background 0.2s;
         }
-        .popup-nav-btn:hover { background: #d62828; }
+        .leaflet-popup-content a.popup-nav-btn:hover { background: #d62828; }
+
+        .popup-action-row { display: flex; gap: 6px; margin-top: 8px; }
+        .popup-action-btn {
+            flex: 1;
+            padding: 8px 10px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 13px;
+            cursor: pointer;
+            color: #fff;
+        }
+        .popup-action-btn.edit { background: #457b9d; }
+        .popup-action-btn.edit:hover { background: #365d7a; }
+        .popup-action-btn.delete { background: #6c757d; }
+        .popup-action-btn.delete:hover { background: #8a2e3a; }
+
+        /* Add "+" floating button */
+        .toggle-add {
+            left: 50%;
+            transform: translateX(-50%);
+            border-color: #43aa8b;
+            font-size: 28px;
+            font-weight: bold;
+            line-height: 1;
+        }
+        .toggle-add:hover { background: #43aa8b; border-color: #fff; }
+
+        /* Add/Edit form modal */
+        .form-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 100000;
+            display: none;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 40px 16px;
+            overflow-y: auto;
+        }
+        .form-backdrop.show { display: flex; }
+        .form-modal {
+            background: #1f1f1f;
+            color: #fff;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 640px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            border: 1px solid #333;
+        }
+        .form-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid #333;
+        }
+        .form-header h3 { font-size: 18px; color: #e63946; }
+        .form-close {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .form-body { padding: 16px 20px; }
+        .form-footer {
+            padding: 12px 20px;
+            border-top: 1px solid #333;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .form-row { margin-bottom: 12px; }
+        .form-row label {
+            display: block;
+            font-size: 12px;
+            color: #bbb;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .form-row input,
+        .form-row select,
+        .form-row textarea {
+            width: 100%;
+            padding: 8px 10px;
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        .form-row input:focus,
+        .form-row select:focus,
+        .form-row textarea:focus {
+            outline: none;
+            border-color: #e63946;
+        }
+        .form-inline { display: flex; gap: 8px; }
+        .form-inline input { flex: 1; }
+        .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+        @media (max-width: 540px) {
+            .form-grid-2, .form-grid-3 { grid-template-columns: 1fr; }
+        }
+        .form-hint { font-size: 12px; margin-top: 4px; color: #888; min-height: 16px; }
+        .form-hint.success { color: #43aa8b; }
+        .form-hint.error { color: #e63946; }
+        .source-row {
+            display: grid;
+            grid-template-columns: 120px 1fr 1fr 1fr 32px;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+        @media (max-width: 540px) {
+            .source-row { grid-template-columns: 1fr 1fr; }
+            .source-row > *:last-child { grid-column: 2; justify-self: end; }
+        }
+        .source-row input, .source-row select {
+            padding: 6px 8px;
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 4px;
+            color: #fff;
+            font-size: 13px;
+        }
+        .btn-primary, .btn-secondary, .btn-mini {
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+        }
+        .btn-primary {
+            background: #e63946;
+            color: #fff;
+            padding: 8px 18px;
+            font-size: 14px;
+        }
+        .btn-primary:hover { background: #d62828; }
+        .btn-secondary {
+            background: #444;
+            color: #fff;
+            padding: 8px 14px;
+            font-size: 14px;
+        }
+        .btn-secondary:hover { background: #555; }
+        .btn-mini {
+            background: #444;
+            color: #fff;
+            padding: 3px 8px;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+        .btn-mini:hover { background: #555; }
+        .btn-mini.danger { background: #8a2e3a; }
+        .btn-mini.danger:hover { background: #a33442; }
+
+        /* Export / reset row in legend */
+        .legend-actions { margin-top: 15px; display: flex; flex-direction: column; gap: 8px; }
+        .legend-actions button {
+            padding: 8px 10px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #fff;
+            font-family: inherit;
+            font-weight: bold;
+        }
+        .legend-actions .btn-export { background: #43aa8b; }
+        .legend-actions .btn-export:hover { background: #358872; }
+        .legend-actions .btn-reset { background: #6c757d; }
+        .legend-actions .btn-reset:hover { background: #555; }
+        .dirty-dot {
+            color: #e63946;
+            font-size: 18px;
+            margin-left: 4px;
+            vertical-align: middle;
+        }
     </style>
 </head>
 <body>
@@ -221,41 +408,102 @@
     
     <!-- Filter Toggle -->
     <button class="toggle-btn toggle-filter" onclick="toggleFilter()">☰</button>
+
+    <!-- Add Location Toggle -->
+    <button class="toggle-btn toggle-add" onclick="openForm()" title="Add location">+</button>
     
     <!-- Legend Panel -->
     <div class="legend" id="legendPanel">
-        <h4>📊 Priority Tiers</h4>
-        <div class="legend-item"><div class="legend-color" style="background:#e63946;"></div>T0 🔴 Must Try</div>
-        <div class="legend-item"><div class="legend-color" style="background:#f4a261;"></div>T1 🟠 Highly Rec</div>
-        <div class="legend-item"><div class="legend-color" style="background:#e9c46a;"></div>T2 🟡 Interested</div>
-        <div class="legend-item"><div class="legend-color" style="background:#a8dadc;"></div>T3 🔵 Maybe Later</div>
-        <div class="legend-item"><div class="legend-color" style="background:#457b9d;"></div>T4 ⚪ Low Priority</div>
-        <div class="legend-item"><div class="legend-color" style="background:#6c757d;"></div>T5 ⚫ Skip</div>
+        <h4>📊 Rating Tiers</h4>
+        <div class="legend-item legend-filter" data-filter-type="rank" data-filter-value="T0" onclick="toggleRank('T0')"><div class="legend-color" style="background:#6c757d;"></div>T0 Not Tried</div>
+        <div class="legend-item legend-filter" data-filter-type="rank" data-filter-value="T1" onclick="toggleRank('T1')"><div class="legend-color" style="background:#e63946;"></div>T1 Bad</div>
+        <div class="legend-item legend-filter" data-filter-type="rank" data-filter-value="T2" onclick="toggleRank('T2')"><div class="legend-color" style="background:#f4a261;"></div>T2 Not Worth It</div>
+        <div class="legend-item legend-filter" data-filter-type="rank" data-filter-value="T3" onclick="toggleRank('T3')"><div class="legend-color" style="background:#e9c46a;"></div>T3 Okay</div>
+        <div class="legend-item legend-filter" data-filter-type="rank" data-filter-value="T4" onclick="toggleRank('T4')"><div class="legend-color" style="background:#a8dadc;"></div>T4 Would Go Back</div>
+        <div class="legend-item legend-filter" data-filter-type="rank" data-filter-value="T5" onclick="toggleRank('T5')"><div class="legend-color" style="background:#43aa8b;"></div>T5 Favorite</div>
         <hr style="margin:15px 0;border-color:#444;">
-        <h4>📱 Source Icons</h4>
-        <div class="legend-item">📱 Instagram</div>
-        <div class="legend-item">👥 Friend</div>
-        <div class="legend-item">📝 Blog</div>
-        <div class="legend-item">📺 Magazine/TV</div>
-        <div class="legend-item">🎲 Random</div>
+        <h4>📱 Source</h4>
+        <div class="legend-item legend-filter" data-filter-type="source" data-filter-value="Instagram" onclick="toggleSource('Instagram')">📱 Instagram</div>
+        <div class="legend-item legend-filter" data-filter-type="source" data-filter-value="YouTube" onclick="toggleSource('YouTube')">▶️ YouTube</div>
+        <div class="legend-item legend-filter" data-filter-type="source" data-filter-value="Friend" onclick="toggleSource('Friend')">👥 Friend</div>
         <hr style="margin:15px 0;border-color:#444;">
-        <h4>✅ Status</h4>
-        <div class="legend-item">🔜 Not Tried</div>
-        <div class="legend-item">✅ Tried</div>
-        <div class="legend-item">⭐ Want to Return</div>
+        <div class="legend-actions">
+            <button class="btn-export" onclick="exportDataJs()">📥 Export data.js<span class="dirty-dot" id="dirtyIndicator" title="You have unsaved edits">●</span></button>
+            <button class="btn-reset" onclick="resetToBaseline()">↺ Reset to committed data.js</button>
+        </div>
     </div>
-    
+
+    <!-- Add / Edit modal -->
+    <div class="form-backdrop" id="formBackdrop" onclick="if(event.target===this)closeForm()">
+        <div class="form-modal">
+            <div class="form-header">
+                <h3 id="formTitle">Add Location</h3>
+                <button class="form-close" onclick="closeForm()" aria-label="Close">×</button>
+            </div>
+            <div class="form-body">
+                <div class="form-row">
+                    <label>Google Maps link</label>
+                    <div class="form-inline">
+                        <input type="text" id="f_gmapsLink" placeholder="https://maps.app.goo.gl/... or https://www.google.com/maps/place/...">
+                        <button type="button" class="btn-secondary" onclick="doParseGmaps()">Parse</button>
+                    </div>
+                    <div id="f_parseMsg" class="form-hint"></div>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-row"><label>Name *</label><input id="f_name"></div>
+                    <div class="form-row"><label>Area / District *</label><input id="f_area" placeholder="Zhongshan District"></div>
+                </div>
+
+                <div class="form-row"><label>Address</label><input id="f_address"></div>
+
+                <div class="form-grid-3">
+                    <div class="form-row"><label>Latitude *</label><input id="f_lat" type="number" step="any"></div>
+                    <div class="form-row"><label>Longitude *</label><input id="f_lng" type="number" step="any"></div>
+                    <div class="form-row"><label>Plus Code</label><input id="f_plusCode"></div>
+                </div>
+
+                <div class="form-grid-3">
+                    <div class="form-row"><label>Rank *</label><select id="f_rank"></select></div>
+                    <div class="form-row"><label>Cuisine</label><input id="f_cuisine"></div>
+                    <div class="form-row"><label>Type</label><input id="f_type" placeholder="Izakaya, Brunch, etc."></div>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-row"><label>Price</label><input id="f_price" placeholder="$100-200 TWD"></div>
+                    <div class="form-row"><label>Notes</label><input id="f_notes"></div>
+                </div>
+
+                <div class="form-row">
+                    <label>Sources <button type="button" class="btn-mini" onclick="addSourceRow()">+ Add source</button></label>
+                    <div id="f_sources"></div>
+                </div>
+
+                <div class="form-row"><label>Why try</label><textarea id="f_whyTry" rows="2"></textarea></div>
+                <div class="form-row"><label>Dish recommendations</label><textarea id="f_dish" rows="2"></textarea></div>
+                <div class="form-grid-2">
+                    <div class="form-row"><label>Mood</label><input id="f_mood"></div>
+                    <div class="form-row"><label>Best for</label><input id="f_bestFor"></div>
+                </div>
+            </div>
+            <div class="form-footer">
+                <button type="button" class="btn-secondary" onclick="closeForm()">Cancel</button>
+                <button type="button" class="btn-primary" onclick="submitForm()">Save</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Filter Panel -->
     <div class="filter-panel" id="filterPanel">
         <div class="filter-title">🔍 Filter Options</div>
         <div style="margin-bottom:8px;font-size:12px;opacity:0.8;">Rating Tier</div>
         <div class="rank-buttons">
-            <button class="rank-btn" style="background:#e63946;" onclick="toggleRank('T0')">T0 🔴</button>
-            <button class="rank-btn" style="background:#f4a261;" onclick="toggleRank('T1')">T1 🟠</button>
-            <button class="rank-btn" style="background:#e9c46a;" onclick="toggleRank('T2')">T2 🟡</button>
-            <button class="rank-btn" style="background:#a8dadc;" onclick="toggleRank('T3')">T3 🔵</button>
-            <button class="rank-btn" style="background:#457b9d;" onclick="toggleRank('T4')">T4 ⚪</button>
-            <button class="rank-btn" style="background:#6c757d;" onclick="toggleRank('T5')">T5 ⚫</button>
+            <button class="rank-btn" style="background:#6c757d;" onclick="toggleRank('T0')">T0</button>
+            <button class="rank-btn" style="background:#e63946;" onclick="toggleRank('T1')">T1</button>
+            <button class="rank-btn" style="background:#f4a261;" onclick="toggleRank('T2')">T2</button>
+            <button class="rank-btn" style="background:#e9c46a;" onclick="toggleRank('T3')">T3</button>
+            <button class="rank-btn" style="background:#a8dadc;" onclick="toggleRank('T4')">T4</button>
+            <button class="rank-btn" style="background:#43aa8b;" onclick="toggleRank('T5')">T5</button>
         </div>
         <div style="margin-bottom:8px;font-size:12px;opacity:0.8;">Area / District</div>
         <div class="area-buttons" id="areaButtons"></div>
@@ -281,47 +529,77 @@
 
         // Reference tier colors and meanings
         const tierColors = {
-            'T0': '#e63946',  // Must Try - Red
-            'T1': '#f4a261',  // Highly Recommended - Orange
-            'T2': '#e9c46a',  // Interested - Yellow
-            'T3': '#a8dadc',  // Maybe Later - Light Blue
-            'T4': '#457b9d',  // Low Priority - Blue
-            'T5': '#6c757d'   // Skip - Gray
+            'T0': '#6c757d',  // Not Tried - Gray
+            'T1': '#e63946',  // Bad - Red
+            'T2': '#f4a261',  // Not Worth It - Orange
+            'T3': '#e9c46a',  // Okay - Yellow
+            'T4': '#a8dadc',  // Would Go Back - Light Blue
+            'T5': '#43aa8b'   // Favorite - Green
         };
 
         const tierLabels = {
-            'T0': 'Must Try',
-            'T1': 'Highly Rec',
-            'T2': 'Interested',
-            'T3': 'Maybe Later',
-            'T4': 'Low Priority',
-            'T5': 'Skip'
+            'T0': 'Not Tried',
+            'T1': 'Bad',
+            'T2': 'Not Worth It',
+            'T3': 'Okay',
+            'T4': 'Would Go Back',
+            'T5': 'Favorite'
         };
 
         // Source icon mapping
         const sourceIcons = {
-            'IG': '📱',
-            'Friend': '👥',
-            'Blog': '📝',
-            'Magazine': '📺',
-            'Random': '🎲'
+            'Instagram': '📱',
+            'YouTube': '▶️',
+            'Friend': '👥'
         };
 
-        // Status icon mapping
-        const statusIcons = {
-            'Not Tried': '🔜',
-            'Tried': '✅',
-            'Want to Return': '⭐'
-        };
+        // ===== Working copy: adds/edits/deletes are staged here, then exported to data.js =====
+        const LS_KEY = 'foodMap.workingCopy';
+        const SOURCE_TYPES = ['Instagram', 'YouTube', 'Friend'];
+        const RANKS = ['T0', 'T1', 'T2', 'T3', 'T4', 'T5'];
+
+        function hashId(entry) {
+            const s = (entry.name || '') + '|' + (entry.lat || '') + '|' + (entry.lng || '') + '|' + Math.random();
+            let h = 0;
+            for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+            return 'e' + Math.abs(h).toString(36);
+        }
+        function ensureId(entry) {
+            if (!entry.id) entry.id = hashId(entry);
+            return entry;
+        }
+        function loadWorkingData() {
+            const saved = localStorage.getItem(LS_KEY);
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    if (Array.isArray(parsed)) return parsed.map(ensureId);
+                } catch (e) {
+                    console.warn('Bad working copy in localStorage, falling back to baseline', e);
+                }
+            }
+            return foodData.map(e => ensureId({ ...e }));
+        }
+        function persistWorkingData() {
+            localStorage.setItem(LS_KEY, JSON.stringify(workingData));
+        }
+        function isDirty() {
+            const baseline = foodData.map(e => { const c = { ...e }; delete c.id; return c; });
+            const current = workingData.map(e => { const c = { ...e }; delete c.id; return c; });
+            return JSON.stringify(baseline) !== JSON.stringify(current);
+        }
+
+        let workingData = loadWorkingData();
 
         // Track current filters
         let activeRanks = new Set();
         let activeAreas = new Set();
+        let activeSources = new Set();
         let markers = [];
 
         // Initialize area buttons from data
         function initAreaButtons() {
-            const areas = [...new Set(foodData.map(item => item.area))].sort();
+            const areas = [...new Set(workingData.map(item => item.area).filter(Boolean))].sort();
             const container = document.getElementById('areaButtons');
             container.innerHTML = areas.map(area => 
                 `<button class="area-btn" onclick="toggleArea('${area}')">${area}</button>`
@@ -334,10 +612,14 @@
             markers.forEach(m => map.removeLayer(m));
             markers = [];
 
-            foodData.forEach(item => {
+            workingData.forEach(item => {
                 // Apply filters
                 if (activeRanks.size > 0 && !activeRanks.has(item.rank)) return;
                 if (activeAreas.size > 0 && !activeAreas.has(item.area)) return;
+                if (activeSources.size > 0) {
+                    const itemTypes = (item.sources || []).map(s => s.type);
+                    if (!itemTypes.some(t => activeSources.has(t))) return;
+                }
 
                 const color = tierColors[item.rank] || '#999999';
                 const marker = L.circleMarker([item.lat, item.lng], {
@@ -352,26 +634,25 @@
                 const popupContent = `
                     <div class="popup-title">${item.name}</div>
                     
-                    <!-- Status & Priority -->
+                    <!-- Priority -->
                     <div class="popup-section">
                         <div class="popup-badges">
-                            <span class="badge status">${statusIcons[item.status] || '🔜'} ${item.status}</span>
-                            <span class="badge priority" style="background:${color}">${item.rank}</span>
+                            <span class="badge priority" style="background:${color}">${item.rank} ${tierLabels[item.rank] || ''}</span>
                         </div>
                     </div>
-                    
+
                     <!-- Source Context - The key differentiator! -->
+                    ${(item.sources && item.sources.length > 0) ? `
                     <div class="popup-section">
-                        <div class="popup-info source">
-                            ${sourceIcons[item.source] || '📍'} <strong>Discovered via:</strong> ${item.source}
-                            ${item.sourceDetail ? ` (${item.sourceDetail})` : ''}
-                            ${item.inspirationLink ? `<a href="${item.inspirationLink}" target="_blank" rel="noopener noreferrer" class="inspiration-link">🔗 See Inspiration</a>` : ''}
-                        </div>
-                        ${item.inspirationImage ? `
-                        <div style="margin-top:10px">
-                            <img src="${item.inspirationImage}" alt="${item.name}" style="width:100%;border-radius:8px;max-height:200px;object-fit:cover;" loading="lazy">
-                        </div>` : ''}
-                    </div>
+                        <div class="popup-label">🔖 Inspired by:</div>
+                        ${item.sources.map(s => `
+                            <div class="popup-info source">
+                                ${sourceIcons[s.type] || '📍'} <strong>${s.type}:</strong>${s.detail ? ` ${s.detail}` : ''}
+                                ${s.link ? `<a href="${s.link}" target="_blank" rel="noopener noreferrer" class="inspiration-link">🔗 See Inspiration</a>` : ''}
+                                ${s.image ? `<img src="${s.image}" alt="${item.name}" style="width:100%;border-radius:8px;max-height:200px;object-fit:cover;margin-top:6px;" loading="lazy">` : ''}
+                            </div>
+                        `).join('')}
+                    </div>` : ''}
                     
                     <!-- Why Try - The motivation! -->
                     ${item.whyTry ? `
@@ -403,8 +684,14 @@
                     </div>
                     
                     <!-- Navigation -->
-                    <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.name + ' ' + item.address)}"
+                    <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.name + ' ' + (item.address || ''))}"
                        target="_blank" rel="noopener noreferrer" class="popup-nav-btn">🗺️ Open in Google Maps</a>
+
+                    <!-- Edit / Delete -->
+                    <div class="popup-action-row">
+                        <button type="button" class="popup-action-btn edit" onclick="openForm('${item.id}')">✏️ Edit</button>
+                        <button type="button" class="popup-action-btn delete" onclick="confirmDelete('${item.id}')">🗑 Delete</button>
+                    </div>
                 `;
 
                 marker.bindPopup(popupContent);
@@ -433,12 +720,356 @@
             createMarkers();
         }
 
-        function resetFilters() {
-            activeRanks.clear();
-            activeAreas.clear();
+        function toggleSource(source) {
+            if (activeSources.has(source)) {
+                activeSources.delete(source);
+            } else {
+                activeSources.add(source);
+            }
             updateUI();
             createMarkers();
         }
+
+        function resetFilters() {
+            activeRanks.clear();
+            activeAreas.clear();
+            activeSources.clear();
+            updateUI();
+            createMarkers();
+        }
+
+        // ===== Working-copy mutations =====
+        function rerender() {
+            persistWorkingData();
+            initAreaButtons();
+            createMarkers();
+            updateUI();
+            updateDirtyIndicator();
+        }
+        function addEntry(entry) {
+            ensureId(entry);
+            workingData.push(entry);
+            rerender();
+        }
+        function updateEntry(id, patch) {
+            const idx = workingData.findIndex(e => e.id === id);
+            if (idx >= 0) {
+                workingData[idx] = { ...workingData[idx], ...patch, id };
+                rerender();
+            }
+        }
+        function deleteEntry(id) {
+            workingData = workingData.filter(e => e.id !== id);
+            rerender();
+        }
+        function confirmDelete(id) {
+            const entry = workingData.find(e => e.id === id);
+            if (!entry) return;
+            if (confirm(`Delete "${entry.name}"? This is staged locally until you export data.js.`)) {
+                map.closePopup();
+                deleteEntry(id);
+            }
+        }
+        function resetToBaseline() {
+            if (!confirm('Discard all unsaved edits and revert to the committed data.js?')) return;
+            localStorage.removeItem(LS_KEY);
+            workingData = foodData.map(e => ensureId({ ...e }));
+            rerender();
+        }
+        function updateDirtyIndicator() {
+            const el = document.getElementById('dirtyIndicator');
+            if (el) el.style.display = isDirty() ? 'inline' : 'none';
+        }
+
+        // ===== Export data.js =====
+        const DATA_JS_TEMPLATE_COMMENT = `/*
+TEMPLATE for adding new restaurants:
+
+{
+    "name": "Restaurant Name",
+    "rank": "T0", // T0=Not Tried, T1=Bad, T2=Not Worth It, T3=Okay, T4=Would Go Back, T5=Favorite
+    "area": "District/Neighborhood",
+    "address": "Full address for Google Maps",
+    "cuisine": "Cuisine type",
+    "type": "Dining style",
+    "price": "Price range",
+    "notes": "Personal notes, hours, phone, etc.",
+    "lat": 25.0330,  // Latitude - find on Google Maps
+    "lng": 121.5654, // Longitude - find on Google Maps
+    "plusCode": "Plus Code (optional)",
+
+    // Where the inspiration came from. Can be multiple — list every source that made you save it.
+    "sources": [
+        {
+            "type": "Instagram",  // "Instagram" | "YouTube" | "Friend"
+            "detail": "@handle or person's name",
+            "link": "https://...",                        // optional: IG post, YouTube video
+            "image": "./images/restaurant_screenshot.jpg" // optional: screenshot
+        }
+        // add more entries if multiple sources recommended it
+    ],
+
+    // Rich Context Fields (what GMaps doesn't store!)
+    "whyTry": "What caught your eye - the vibe? A specific dish? The decor?",
+    "dishRecommendations": "Specific dishes to order based on source post",
+    "mood": "Date night, Casual hangout, Solo dining, Group celebration",
+    "bestFor": "Lunch, Dinner, Weekend brunch, Late night"
+}
+
+SOURCE TYPES:
+- Instagram — saved from an IG post/reel (include the post link + screenshot if possible)
+- YouTube — saw it in a video (include the video link + timestamp if relevant)
+- Friend — verbal/text recommendation from someone you know
+
+Multiple sources: if a friend told you about a place AND you later saw it on IG,
+add both entries. The map will match the place under either source filter.
+
+CONTEXT FIELDS:
+- whyTry: Your personal note about what caught your attention
+- dishRecommendations: Specific dishes mentioned in the source
+- mood: What kind of occasion is this place good for
+- bestFor: Best time to visit (lunch vs dinner, weekday vs weekend)
+
+This solves the GMaps problem: "I saved it but forgot why"
+*/
+`;
+
+        function exportDataJs() {
+            const clean = workingData.map(e => {
+                const { id, ...rest } = e;
+                return rest;
+            });
+            const json = JSON.stringify(clean, null, 4);
+            const contents =
+                '// Restaurant Data - Add your own restaurants here!\n' +
+                'const foodData = ' + json + ';\n\n' +
+                DATA_JS_TEMPLATE_COMMENT;
+            const blob = new Blob([contents], { type: 'text/javascript' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'data.js';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        window.addEventListener('beforeunload', (e) => {
+            if (isDirty()) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+
+        // ===== Google Maps URL parser =====
+        async function parseGmapsLink(url) {
+            url = (url || '').trim();
+            if (!url) throw new Error('Paste a Google Maps link first.');
+
+            // Short link: resolve via public CORS proxy that reports the redirect target
+            if (/maps\.app\.goo\.gl|goo\.gl\/maps/i.test(url)) {
+                try {
+                    const resp = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(url));
+                    const data = await resp.json();
+                    const finalUrl = data && data.status && data.status.url;
+                    if (finalUrl && /google\.com\/maps/i.test(finalUrl)) {
+                        url = finalUrl;
+                    } else {
+                        throw new Error('unexpected response');
+                    }
+                } catch (e) {
+                    throw new Error("Couldn't resolve the short link. Open it in a new tab and paste the expanded URL from the address bar here.");
+                }
+            }
+
+            const result = {};
+            const coordMatch = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/)
+                || url.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
+            if (coordMatch) {
+                result.lat = parseFloat(coordMatch[1]);
+                result.lng = parseFloat(coordMatch[2]);
+            }
+
+            const nameMatch = url.match(/\/place\/([^/@]+)/);
+            if (nameMatch) {
+                try {
+                    result.name = decodeURIComponent(nameMatch[1]).replace(/\+/g, ' ').trim();
+                } catch (e) {
+                    result.name = nameMatch[1].replace(/\+/g, ' ').trim();
+                }
+            }
+
+            const plusMatch = url.match(/[23456789CFGHJMPQRVWX]{4,8}\+[23456789CFGHJMPQRVWX]{2,3}/);
+            if (plusMatch) result.plusCode = plusMatch[0];
+
+            if (result.lat == null || result.lng == null) {
+                throw new Error("Couldn't find coordinates in that URL. Make sure it's a full google.com/maps URL with an @lat,lng segment.");
+            }
+            return result;
+        }
+
+        // ===== Add / Edit form =====
+        let editingId = null;
+
+        const FIELD_MAP = {
+            f_name: 'name',
+            f_area: 'area',
+            f_address: 'address',
+            f_lat: 'lat',
+            f_lng: 'lng',
+            f_plusCode: 'plusCode',
+            f_cuisine: 'cuisine',
+            f_type: 'type',
+            f_price: 'price',
+            f_notes: 'notes',
+            f_whyTry: 'whyTry',
+            f_dish: 'dishRecommendations',
+            f_mood: 'mood',
+            f_bestFor: 'bestFor'
+        };
+
+        function openForm(id) {
+            editingId = id || null;
+            const entry = id ? workingData.find(e => e.id === id) : null;
+            document.getElementById('formTitle').textContent = entry ? 'Edit Location' : 'Add Location';
+
+            // Rank dropdown
+            const rankSel = document.getElementById('f_rank');
+            rankSel.innerHTML = RANKS.map(r =>
+                `<option value="${r}">${r} — ${tierLabels[r]}</option>`
+            ).join('');
+
+            // Scalar fields
+            document.getElementById('f_gmapsLink').value = '';
+            setParseMsg('', '');
+            Object.entries(FIELD_MAP).forEach(([inputId, field]) => {
+                document.getElementById(inputId).value = entry ? (entry[field] ?? '') : '';
+            });
+            rankSel.value = entry && entry.rank ? entry.rank : 'T0';
+
+            // Sources
+            const container = document.getElementById('f_sources');
+            container.innerHTML = '';
+            const srcs = (entry && Array.isArray(entry.sources)) ? entry.sources : [];
+            if (srcs.length === 0) {
+                addSourceRow();
+            } else {
+                srcs.forEach(s => addSourceRow(s));
+            }
+
+            document.getElementById('formBackdrop').classList.add('show');
+            setTimeout(() => document.getElementById('f_gmapsLink').focus(), 50);
+        }
+
+        function closeForm() {
+            document.getElementById('formBackdrop').classList.remove('show');
+            editingId = null;
+        }
+
+        function addSourceRow(source) {
+            const container = document.getElementById('f_sources');
+            const row = document.createElement('div');
+            row.className = 'source-row';
+            const typeSel = SOURCE_TYPES.map(t =>
+                `<option value="${t}" ${source && source.type === t ? 'selected' : ''}>${sourceIcons[t]} ${t}</option>`
+            ).join('');
+            row.innerHTML = `
+                <select class="src-type">${typeSel}</select>
+                <input class="src-detail" placeholder="@handle or name" value="${escapeAttr(source && source.detail)}">
+                <input class="src-link" placeholder="link (optional)" value="${escapeAttr(source && source.link)}">
+                <input class="src-image" placeholder="./images/x.jpg" value="${escapeAttr(source && source.image)}">
+                <button type="button" class="btn-mini danger" title="Remove source">×</button>
+            `;
+            row.querySelector('button').onclick = () => row.remove();
+            container.appendChild(row);
+        }
+
+        function escapeAttr(s) {
+            if (s == null) return '';
+            return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+        }
+
+        function setParseMsg(text, cls) {
+            const el = document.getElementById('f_parseMsg');
+            el.textContent = text;
+            el.className = 'form-hint' + (cls ? ' ' + cls : '');
+        }
+
+        async function doParseGmaps() {
+            const input = document.getElementById('f_gmapsLink').value;
+            setParseMsg('Parsing…', '');
+            try {
+                const parsed = await parseGmapsLink(input);
+                const nameInput = document.getElementById('f_name');
+                const plusInput = document.getElementById('f_plusCode');
+                if (parsed.name && !nameInput.value) nameInput.value = parsed.name;
+                if (parsed.lat != null) document.getElementById('f_lat').value = parsed.lat;
+                if (parsed.lng != null) document.getElementById('f_lng').value = parsed.lng;
+                if (parsed.plusCode && !plusInput.value) plusInput.value = parsed.plusCode;
+                setParseMsg('✓ Filled: ' + Object.keys(parsed).join(', '), 'success');
+            } catch (e) {
+                setParseMsg('⚠ ' + e.message, 'error');
+            }
+        }
+
+        function submitForm() {
+            const getVal = id => document.getElementById(id).value.trim();
+            const name = getVal('f_name');
+            const area = getVal('f_area');
+            const lat = parseFloat(getVal('f_lat'));
+            const lng = parseFloat(getVal('f_lng'));
+            const rank = document.getElementById('f_rank').value;
+
+            if (!name || !area || !rank || Number.isNaN(lat) || Number.isNaN(lng)) {
+                alert('Required: Name, Area, Rank, Latitude, Longitude.');
+                return;
+            }
+
+            const sources = [];
+            document.querySelectorAll('#f_sources .source-row').forEach(row => {
+                const type = row.querySelector('.src-type').value;
+                const detail = row.querySelector('.src-detail').value.trim();
+                const link = row.querySelector('.src-link').value.trim();
+                const image = row.querySelector('.src-image').value.trim();
+                if (!detail && !link && !image) return;
+                const s = { type };
+                if (detail) s.detail = detail;
+                if (link) s.link = link;
+                if (image) s.image = image;
+                sources.push(s);
+            });
+
+            const entry = {
+                name, rank, area,
+                address: getVal('f_address'),
+                cuisine: getVal('f_cuisine'),
+                type: getVal('f_type'),
+                price: getVal('f_price'),
+                notes: getVal('f_notes'),
+                lat, lng,
+                plusCode: getVal('f_plusCode'),
+                sources,
+                whyTry: getVal('f_whyTry'),
+                dishRecommendations: getVal('f_dish'),
+                mood: getVal('f_mood'),
+                bestFor: getVal('f_bestFor')
+            };
+
+            if (editingId) {
+                updateEntry(editingId, entry);
+            } else {
+                addEntry(entry);
+            }
+            closeForm();
+        }
+
+        // ESC closes modal
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const bd = document.getElementById('formBackdrop');
+                if (bd.classList.contains('show')) closeForm();
+            }
+        });
 
         function updateUI() {
             // Update rank buttons
@@ -449,6 +1080,15 @@
             // Update area buttons
             document.querySelectorAll('.area-btn').forEach(btn => {
                 btn.classList.toggle('active', activeAreas.has(btn.textContent));
+            });
+            // Update legend filter items (rank + source)
+            document.querySelectorAll('.legend-filter').forEach(el => {
+                const type = el.dataset.filterType;
+                const val = el.dataset.filterValue;
+                const isActive =
+                    (type === 'rank' && activeRanks.has(val)) ||
+                    (type === 'source' && activeSources.has(val));
+                el.classList.toggle('active', isActive);
             });
         }
 
@@ -466,6 +1106,7 @@
         // Initialize
         initAreaButtons();
         createMarkers();
+        updateDirtyIndicator();
     </script>
 </body>
 </html>

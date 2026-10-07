@@ -1,6 +1,6 @@
 // Restaurant Data - Add your own restaurants here!
 const foodData = [
-    // ===== MUST TRY =====
+    // ===== NOT TRIED =====
     {
         "name": "手工蕎麥麵 蕎菜",
         "rank": "T0",
@@ -13,11 +13,9 @@ const foodData = [
         "lat": 25.0623,
         "lng": 121.5235,
         "plusCode": "3G2F+8C Zhongshan District, Taipei City",
-        "source": "IG",
-        "sourceDetail": "@foodie_account",
-        "status": "Not Tried",
-        "inspirationLink": "",
-        "inspirationImage": "",
+        "sources": [
+            { "type": "Instagram", "detail": "@foodie_account" }
+        ],
         "whyTry": "Cozy izakaya vibe with handmade soba",
         "dishRecommendations": "Cold soba with dipping sauce, tempura",
         "mood": "Date night, Intimate dinner",
@@ -35,11 +33,9 @@ const foodData = [
         "lat": 25.0256,
         "lng": 121.4998,
         "plusCode": "2GH2+R4 Wanhua District, Taipei City",
-        "source": "Friend",
-        "sourceDetail": "小明",
-        "status": "Not Tried",
-        "inspirationLink": "",
-        "inspirationImage": "",
+        "sources": [
+            { "type": "Friend", "detail": "小明" }
+        ],
         "whyTry": "Traditional Taiwanese street snack",
         "dishRecommendations": "Crab shell yellow cake, pepper bun",
         "mood": "Quick bite, Take away",
@@ -57,11 +53,9 @@ const foodData = [
         "lat": 25.0286,
         "lng": 121.4998,
         "plusCode": "2FJV+86 Wanhua District, Taipei City",
-        "source": "IG",
-        "sourceDetail": "@taipei_food",
-        "status": "Not Tried",
-        "inspirationLink": "",
-        "inspirationImage": "",
+        "sources": [
+            { "type": "Instagram", "detail": "@taipei_food" }
+        ],
         "whyTry": "Famous egg-wrapped noodles, people queue for this",
         "dishRecommendations": "Egg wrapped noodles, chili sauce",
         "mood": "Casual, Quick lunch",
@@ -75,15 +69,11 @@ const foodData = [
         "cuisine": "Japanese",
         "type": "Izakaya",
         "price": "$400-800 TWD",
-        "notes": "Japanese izakaya. Opens at 18:00. Phone: +886 2 2521 1700. Website: shisei-taipei.com. Plus Code: 3G6C+J9. LGBTQ Friendly.",
+        "notes": "Japanese izakaya. Opens at 18:00. Phone: +886 2 2521 1700. Website: shisei-taipei.com. Plus Code: 3G6C+J9. LGBTQ Friendly. Originally recommended in 食尚玩家 magazine.",
         "lat": 25.0657,
         "lng": 121.5346,
         "plusCode": "3G6C+J9 Zhongshan District, Taipei City",
-        "source": "Magazine",
-        "sourceDetail": "食尚玩家",
-        "status": "Not Tried",
-        "inspirationLink": "",
-        "inspirationImage": "",
+        "sources": [],
         "whyTry": "Authentic Japanese izakaya experience, LGBTQ friendly",
         "dishRecommendations": "Grilled skewers, sake selection, seasonal dishes",
         "mood": "Date night, Group dinner, Celebrations",
@@ -101,11 +91,13 @@ const foodData = [
         "lat": 25.0084,
         "lng": 121.4639,
         "plusCode": "2FC9+5F Banqiao District, New Taipei City",
-        "source": "IG",
-        "sourceDetail": "@foodie_account",
-        "status": "Not Tried",
-        "inspirationLink": "https://www.instagram.com/p/DXMeLh4geME/",
-        "inspirationImage": "",
+        "sources": [
+            {
+                "type": "Instagram",
+                "detail": "@foodie_account",
+                "link": "https://www.instagram.com/p/DXMeLh4geME/"
+            }
+        ],
         "whyTry": "From the same IG post that mentioned other spots - looks like a cozy brunch place in Songshan",
         "dishRecommendations": "Brunch items, coffee - need to check the post again for specifics",
         "mood": "Brunch, Weekend morning, Casual hangout",
@@ -113,7 +105,7 @@ const foodData = [
     },
     {
         "name": "芮秋 Rachel",
-        "rank": "T1",
+        "rank": "T0",
         "area": "Songshan District",
         "address": "No. 405號, Fujin St, Songshan District, Taipei City, Taiwan 105",
         "cuisine": "European Brunch / Natural Wine",
@@ -123,11 +115,14 @@ const foodData = [
         "lat": 25.0608,
         "lng": 121.5602,
         "plusCode": "3H66+83 Songshan District, Taipei City",
-        "source": "IG",
-        "sourceDetail": "@foodie_account (same post)",
-        "status": "Not Tried",
-        "inspirationLink": "https://www.instagram.com/p/DXMeLh4geME/",
-        "inspirationImage": "./images/rachel_screenshot.jpg",
+        "sources": [
+            {
+                "type": "Instagram",
+                "detail": "@foodie_account (same post)",
+                "link": "https://www.instagram.com/p/DXMeLh4geME/",
+                "image": "./images/rachel_screenshot.jpg"
+            }
+        ],
         "whyTry": "Screenshot shows their signature iron skillet Dutch baby pancake - took nearly a year to perfect, with crispy edges and fluffy center with egg aroma, topped with slow-cooked silk cheese and house-cured pork belly",
         "dishRecommendations": "Iron skillet Dutch baby pancake (鐵鍋寶貝鬆餅) with silk cheese and house-cured pork belly, paired with natural wine",
         "mood": "Morning energy boost with natural wine and European cuisine, Chill brunch vibes",
@@ -135,7 +130,7 @@ const foodData = [
     },
     {
         "name": "landed (用一本書佐十杯酒)",
-        "rank": "T1",
+        "rank": "T0",
         "area": "Songshan District",
         "address": "1F, No. 1, Alley 45, Lane 366, Section 2, Bade Rd, Songshan District, Taipei City, Taiwan 105",
         "cuisine": "Natural Wine Bar / Literary Theme",
@@ -145,11 +140,14 @@ const foodData = [
         "lat": 25.0464289,
         "lng": 121.5461301,
         "plusCode": "2GWW+HF Songshan District, Taipei City",
-        "source": "IG",
-        "sourceDetail": "same IG post (@foodie_account)",
-        "status": "Not Tried",
-        "inspirationLink": "https://www.instagram.com/p/DXMeLh4geME/",
-        "inspirationImage": "./images/landed_screenshot.jpg",
+        "sources": [
+            {
+                "type": "Instagram",
+                "detail": "same IG post (@foodie_account)",
+                "link": "https://www.instagram.com/p/DXMeLh4geME/",
+                "image": "./images/landed_screenshot.jpg"
+            }
+        ],
         "whyTry": "Unique concept: 'ten natural wines to match a book.' Current selection pairs wines with Hermann Hesse's Siddhartha - love the contemplative vibe of 'reading a book by drinking'. Screenshot shows wine glass on open book with Chinese text.",
         "dishRecommendations": "10-wine flight paired with book themes. Featured pairing: 'Bluebeard' with French Alsace Pinot Noir. Ask about current book pairing.",
         "mood": "Sophisticated, contemplative, literary, intimate",
@@ -162,7 +160,7 @@ TEMPLATE for adding new restaurants:
 
 {
     "name": "Restaurant Name",
-    "rank": "T0", // T0=Must Try, T1=Highly Recommended, T2=Interested, T3=Maybe Later
+    "rank": "T0", // T0=Not Tried, T1=Bad, T2=Not Worth It, T3=Okay, T4=Would Go Back, T5=Favorite
     "area": "District/Neighborhood",
     "address": "Full address for Google Maps",
     "cuisine": "Cuisine type",
@@ -172,34 +170,34 @@ TEMPLATE for adding new restaurants:
     "lat": 25.0330,  // Latitude - find on Google Maps
     "lng": 121.5654, // Longitude - find on Google Maps
     "plusCode": "Plus Code (optional)",
-    "source": "IG/Friend/Blog/Magazine/Random",  // Where you discovered it
-    "sourceDetail": "@instagram_handle or friend's name",  // Specific account or person
-    "status": "Not Tried",  // Not Tried, Tried, Want to Return
-    
-    // NEW: Rich Context Fields (what GMaps doesn't store!)
-    "inspirationLink": "https://instagram.com/p/XXXXX",  // Link to IG post/blog that inspired you
-    "inspirationImage": "./images/restaurant_screenshot.jpg",  // Screenshot or saved image (optional)
-    "whyTry": "What caught your eye - the vibe? A specific dish? The decor?",  // WHY you saved it
-    "dishRecommendations": "Specific dishes to order based on source post",  // What to order
-    "mood": "Date night, Casual hangout, Solo dining, Group celebration",  // Best occasions
-    "bestFor": "Lunch, Dinner, Weekend brunch, Late night"  // Best timing
+
+    // Where the inspiration came from. Can be multiple — list every source that made you save it.
+    "sources": [
+        {
+            "type": "Instagram",  // "Instagram" | "YouTube" | "Friend"
+            "detail": "@handle or person's name",
+            "link": "https://...",                        // optional: IG post, YouTube video
+            "image": "./images/restaurant_screenshot.jpg" // optional: screenshot
+        }
+        // add more entries if multiple sources recommended it
+    ],
+
+    // Rich Context Fields (what GMaps doesn't store!)
+    "whyTry": "What caught your eye - the vibe? A specific dish? The decor?",
+    "dishRecommendations": "Specific dishes to order based on source post",
+    "mood": "Date night, Casual hangout, Solo dining, Group celebration",
+    "bestFor": "Lunch, Dinner, Weekend brunch, Late night"
 }
 
-SOURCES:
-- IG = Instagram
-- Friend = Friend recommendation
-- Blog = Food blog
-- Magazine = TV show or magazine
-- Random = Random discovery
+SOURCE TYPES:
+- Instagram — saved from an IG post/reel (include the post link + screenshot if possible)
+- YouTube — saw it in a video (include the video link + timestamp if relevant)
+- Friend — verbal/text recommendation from someone you know
 
-STATUS:
-- Not Tried = Haven't been yet
-- Tried = Already visited
-- Want to Return = Loved it, want to go back
+Multiple sources: if a friend told you about a place AND you later saw it on IG,
+add both entries. The map will match the place under either source filter.
 
-NEW CONTEXT FIELDS:
-- inspirationLink: Save the exact IG post, blog link, or article that inspired you
-- inspirationImage: Screenshot or photo that shows why you want to try it
+CONTEXT FIELDS:
 - whyTry: Your personal note about what caught your attention
 - dishRecommendations: Specific dishes mentioned in the source
 - mood: What kind of occasion is this place good for
