@@ -3,30 +3,18 @@ import 'leaflet/dist/leaflet.css';
 // After Leaflet's CSS, so our popup and tile styles win.
 import './style.css';
 import type { Place, Source } from '../place.ts';
+import { TAIPEI, addTiles, esc, safeImage, safeUrl } from './shared.ts';
 
-const TAIPEI: L.LatLngTuple = [25.05, 121.55];
 const SOURCE_LABELS: Record<Source['type'], string> = {
   ig: '📸 Instagram', youtube: '▶️ YouTube', friend: '🧑 Friend', maps: '🗺️ Google Maps', web: '🔗 Web',
 };
 
 const map = L.map('map', { zoomControl: false }).setView(TAIPEI, 13);
 L.control.zoom({ position: 'bottomright' }).addTo(map);
-// OSM's own tiles: no key (CARTO's free basemaps now require one), fine for one
-// user under OSM's tile policy. Darkened in style.css.
-// ponytail: public OSM tiles; switch to a keyed provider if usage ever grows.
-L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-  maxZoom: 19,
-}).addTo(map);
-
-/** Place text will soon come from extracted captures: never trust it as HTML. */
-const esc = (s: string) =>
-  s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
-const safeUrl = (u: string | null) => (u && /^https?:\/\//i.test(u) ? esc(u) : null);
-const safeImage = (p: string | null) => (p && /^images\/[\w.-]+$/.test(p) ? `/${p}` : null);
+addTiles(map);
 
 function sourceHtml(s: Source) {
-  const url = safeUrl(s.url);
+  const url = safeUrl(s.url) && esc(s.url!);
   const img = safeImage(s.image);
   return `<li>${SOURCE_LABELS[s.type] ?? esc(s.type)}${s.detail ? ` · ${esc(s.detail)}` : ''}
     ${url ? ` · <a href="${url}" target="_blank" rel="noopener noreferrer">open</a>` : ''}
@@ -77,7 +65,16 @@ try {
       .addTo(map);
   }
   if (places.length) map.fitBounds(places.map((p) => [p.lat, p.lng] as L.LatLngTuple), { padding: [40, 40], maxZoom: 15 });
+  void showInboxCount();
 } catch (e) {
   console.error(e);
   showStatus('Could not load places. Try reloading.');
+}
+
+/** The inbox link shows how many shares are waiting. */
+async function showInboxCount() {
+  const res = await fetch('/api/drafts');
+  if (!res.ok) return;
+  const n = ((await res.json()) as unknown[]).length;
+  if (n) document.getElementById('inbox-count')!.textContent = String(n);
 }

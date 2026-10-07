@@ -31,12 +31,15 @@ Run the **built** app through the real server, not the Vite dev server: it's one
 Put scripts and screenshots in the directory the brief names, never in the repo. Don't edit repo files. Stop the server you started.
 
 ## App knowledge and known quirks
-- **One page: the map** (`#map`, Leaflet, OpenStreetMap tiles darkened by a CSS filter). On load it fetches `/api/places` and fits the view to every place (Taipei).
+- **Two pages: the map (`/`) and the inbox (`/inbox.html`).** The map has an "Inbox" button (`#inbox-link`, top right) with a count badge when shares are waiting.
+- **Make a share** the way Android does it: `curl -s -o /dev/null -w '%{redirect_url}\n' -F 'text=Look https://www.instagram.com/p/xyz/' -F 'image=@<a jpg>;type=image/jpeg' http://localhost:8095/share`. It redirects (303) to `/inbox.html#<draft id>`. Use a screenshot from `<scratch>/data/images/` as the jpg. Use `--form-string` instead of `-F` for text that starts with `<` or `@` (curl reads `-F 'text=<…'` as a file). A `title` field plus a Google Maps URL with `@lat,lng` imitates a Maps share: the name is prefilled and the pin is placed.
+- **Inbox card** (`form.draft`, id = draft id): the shared image and text, fields Name, Why, What to order, Area, Source and From, a pin input (paste "lat, lng" or a Maps URL), a mini-map (`.mini-map`; tap to drop the pin, `.pin` is draggable), then **Skip** and **Save to map**. Save without a name, why or pin shows `.error`. A successful save removes the card and shows `.toast`. Skip asks `confirm()`, so accept the dialog.
+- **The map page** (`#map`, Leaflet, OpenStreetMap tiles darkened by a CSS filter). On load it fetches `/api/places` and fits the view to every place (Taipei).
 - **Pins** are SVG circles: `path.leaflet-interactive`. Orange (`--want`) means "want to go"; green (`--visited`) means visited. Click a pin to open its popup.
 - **Popup:** `.leaflet-popup-content .place`. It contains `h2` (the name), a status badge, the meta line, `.why`, then "Order", "Saved because of" (sources, which can include a screenshot `img` from `/images/…`), "Notes" and an "Open in Google Maps" link.
 - **Status banner:** `#status` shows "No places yet." or "Could not load places…".
 - With the real data there are 7 places, all "want to go". 芮秋 Rachel and landed have screenshots.
-- **External requests are expected** only to `tile.openstreetmap.org` (map tiles). Any other host is a finding.
+- **External requests are expected** only to `tile.openstreetmap.org` (map tiles), and only when an Open link is clicked (which a check shouldn't do). Any other host is a finding.
 - Tiles load asynchronously. Wait for `img.leaflet-tile-loaded` before taking screenshots. If the sandbox has no internet, tiles stay grey: report that, it isn't an app failure.
 - Leaflet pans the map to fit an opened popup (`autoPanPadding` 16 px). Popups are capped at 60% of the viewport height and scroll inside (`.leaflet-popup-scrolled`). Take the screenshot after the pan settles (~300 ms).
 
@@ -49,4 +52,4 @@ Put scripts and screenshots in the directory the brief names, never in the repo.
 ## Limits
 - **Cloudflare Access can't be checked here.** Locally `DEV_ACCOUNT` bypasses it. The JWT check is covered by `src/server/auth.test.ts` and `app.test.ts`. Mark sign-in behaviour NOT VERIFIABLE.
 - **Docker isn't available** to this user (not in the `docker` group). The container is checked by bwu on the homelab.
-- No real Android: the phone size is emulated in Chromium. The share sheet (Sprint 1+) is NOT VERIFIABLE; only bwu can test it on a phone.
+- No real Android: the phone size is emulated in Chromium. Installing the app and the share sheet itself are NOT VERIFIABLE; only bwu can test them on a phone. `curl -F` to `/share` exercises the same request the share sheet sends.

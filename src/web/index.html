@@ -5,11 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#1b1b1f" />
     <title>Food Map</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍜</text></svg>" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/icon.svg" />
   </head>
   <body>
     <div id="map" role="application" aria-label="Map of saved places"></div>
     <p id="status" role="status" hidden></p>
+    <a id="inbox-link" class="fab" href="/inbox.html">Inbox <span id="inbox-count" class="count"></span></a>
     <script type="module" src="./main.ts"></script>
   </body>
 </html>
