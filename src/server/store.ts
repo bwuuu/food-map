@@ -13,7 +13,7 @@
 import { randomBytes } from 'node:crypto';
 import { mkdir, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import type { Draft, Place, SaveInput, Suggestion, VisitInput } from '../place.ts';
+import { isRemovable, type Draft, type Place, type SaveInput, type Suggestion, type VisitInput } from '../place.ts';
 import type { KeyRecord } from './keys.ts';
 
 export const isDraftId = (id: string) => /^d_[0-9a-f]{12}$/.test(id);
@@ -114,7 +114,7 @@ export function createStore(dataDir: string) {
      * share becomes another source of that place instead of a duplicate pin.
      * The screenshot stays in images/ either way.
      */
-    saveDraft: (id: string, input: SaveInput) =>
+    saveDraft: (id: string, input: SaveInput, addedBy: string | null = null) =>
       serial(async (): Promise<{ place: Place; merged: boolean }> => {
         const draft = await getDraft(id);
         const source = { type: input.sourceType, detail: input.sourceDetail, url: draft.url, image: draft.image };
@@ -153,11 +153,47 @@ export function createStore(dataDir: string) {
             status: 'want',
             rank: null,
             notes: null,
+            ...(addedBy ? { addedBy } : {}),
           };
           await writeJson(placesFile, [...places, place]);
         }
         await rm(draftFile(id));
         return { place, merged: !!existing };
+      }),
+
+    /**
+     * An agent couldn't confirm a pin: keep its reading for the inbox form, with
+     * the reason, and mark the draft so the next run leaves it alone. Fields the
+     * extractor already found (a Maps pin) are kept.
+     */
+    flagDraft: (id: string, reading: Partial<Suggestion>, reason: string, by: string) =>
+      serial(async () => {
+        const draft = await getDraft(id);
+        const before = draft.suggestion;
+        const pick = <K extends keyof Suggestion>(k: K, empty: Suggestion[K]) => (before?.[k] || reading[k] || empty) as Suggestion[K];
+        const suggestion: Suggestion = {
+          name: pick('name', null), why: pick('why', null), area: pick('area', null), category: pick('category', null),
+          cuisine: pick('cuisine', null), address: pick('address', null), googlePlaceId: pick('googlePlaceId', null),
+          dishes: before?.dishes.length ? before.dishes : (reading.dishes ?? []),
+          lat: before?.lat ?? null, lng: before?.lng ?? null, confidence: before?.confidence ?? 'low',
+          note: reason,
+        };
+        const flagged: Draft = { ...draft, extraction: 'done', suggestion, flagged: { by, at: new Date().toISOString() } };
+        await writeJson(draftFile(id), flagged);
+        return flagged;
+      }),
+
+    /**
+     * Undo for a place an agent added (#18), while it's still only the agent's:
+     * not once I've visited it or another share merged into it.
+     */
+    removeAgentPlace: (id: string) =>
+      serial(async () => {
+        if (!isPlaceId(id)) throw new NotFound();
+        const places = await readJson<Place[]>(placesFile, []);
+        const place = places.find((p) => p.id === id);
+        if (!isRemovable(place)) throw new NotFound();
+        await writeJson(placesFile, places.filter((p) => p.id !== id));
       }),
 
     /** After eating there: visited, a rank, and a dated line in the notes. */

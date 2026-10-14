@@ -101,3 +101,5 @@ body.inbox { height: auto; min-height: 100%; }
 
 .extract-status { margin: 0; padding: 8px 12px; border-radius: 8px; background: #2f3b33; color: var(--text); font-size: 14px; }
 .extract-status.warn { background: #3d3324; }
+.place .added-by { margin: 8px 0 0; font-size: 12px; color: var(--muted); }
+.place .remove { font: inherit; min-height: 32px; padding: 0 4px; border: 0; background: transparent; color: var(--link); cursor: pointer; }

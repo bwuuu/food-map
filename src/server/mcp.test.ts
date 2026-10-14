@@ -88,7 +88,7 @@ describe('/mcp protocol', () => {
     expect(init.result).toMatchObject({ protocolVersion: '2025-06-18', serverInfo: { name: 'food-map' } });
     const { result } = await (await rpc(writeKey, 'tools/list')).json();
     const names = result.tools.map((t: { name: string }) => t.name);
-    expect(names).toEqual(['list_inbox', 'get_draft', 'resolve_draft', 'skip_draft', 'search_places', 'record_visit']); // no find_place without a Places key
+    expect(names).toEqual(['list_inbox', 'get_draft', 'resolve_draft', 'flag_draft', 'skip_draft', 'search_places', 'record_visit']); // no find_place without a Places key
     const note = await app.request('/mcp', {
       method: 'POST',
       headers: { authorization: `Bearer ${writeKey}` },
@@ -138,6 +138,54 @@ describe('/mcp tools', () => {
     const [draft] = await json('list_inbox');
     expect(await json('skip_draft', { id: draft.id })).toEqual({ skipped: draft.id });
     expect(await tool('get_draft', { id: draft.id })).toMatchObject({ isError: true, content: [{ text: expect.stringMatching(/not found/) }] });
+  });
+
+  it('puts only a confirmed pin on the map, and records which agent did (#18)', async () => {
+    await share({ text: 'somewhere' });
+    const [draft] = await json('list_inbox');
+    const guess = { id: draft.id, name: 'Rachel', why: 'pancakes', lat: 25.05, lng: 121.56 };
+    expect(await tool('resolve_draft', guess)).toMatchObject({ isError: true, content: [{ text: expect.stringMatching(/unconfirmed pin/) }] });
+
+    // A Maps link's pin, as the extractor leaves it on the draft.
+    await createStore(dataDir).finishExtraction(draft.id, { name: 'Rachel', why: null, dishes: [], area: null, category: null, cuisine: null, lat: 25.0512345, lng: 121.5612345, address: null, googlePlaceId: null, confidence: 'high', note: null });
+    expect(await tool('resolve_draft', { ...guess, lat: 25.05 })).toMatchObject({ isError: true });
+    const { place } = await json('resolve_draft', { ...guess, lat: 25.0512345, lng: 121.5612345 });
+    expect(place).toMatchObject({ addedBy: 'claude-laptop', lat: 25.0512345 });
+  });
+
+  it('flags a draft for the person: the reading pre-fills the form, and the next run leaves it alone', async () => {
+    await share({ text: 'Rachel pancakes' });
+    const [draft] = await json('list_inbox');
+    expect(await tool('flag_draft', { id: draft.id })).toMatchObject({ isError: true });
+    expect(await json('flag_draft', { id: draft.id, reason: 'No Places match: drop the pin.', name: '芮秋 Rachel', why: 'Dutch baby', dishes: ['Dutch baby'] })).toEqual({ flagged: draft.id });
+    expect(await json('list_inbox')).toEqual([]);
+    const [flagged] = await json('list_inbox', { all: true });
+    expect(flagged).toMatchObject({
+      flagged: { by: 'claude-laptop' },
+      extraction: 'done',
+      suggestion: { name: '芮秋 Rachel', why: 'Dutch baby', dishes: ['Dutch baby'], lat: null, confidence: 'low', note: 'No Places match: drop the pin.' },
+    });
+  });
+
+  it('lets me remove a place an agent added, but not one I saved or visited', async () => {
+    const signedIn = createApp({ identify: async () => ({ email: 'me@example.com' }), dataDir, webDir: dataDir });
+    const del = (id: string) => signedIn.request(`/api/places/${id}`, { method: 'DELETE' });
+    const pin = { lat: 25.05, lng: 121.56, why: 'x' };
+    await share({ text: 'a' });
+    const agents = (await json('resolve_draft', { id: (await json('list_inbox'))[0].id, ...pin, name: 'A', googlePlaceId: 'ChIJa' })).place;
+    await share({ text: 'b' });
+    const visited = (await json('resolve_draft', { id: (await json('list_inbox'))[0].id, ...pin, name: 'B', googlePlaceId: 'ChIJb' })).place;
+    await json('record_visit', { id: visited.id, rank: 'T4' });
+    await share({ text: 'c' });
+    const mine = (await (await signedIn.request(`/api/drafts/${(await json('list_inbox'))[0].id}/save`, {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ ...pin, name: 'C' }),
+    })).json()).place;
+    expect(mine.addedBy).toBeUndefined();
+
+    expect((await del(mine.id)).status).toBe(404);
+    expect((await del(visited.id)).status).toBe(404);
+    expect((await del(agents.id)).status).toBe(204);
+    expect((await json('search_places')).map((p: Place) => p.name).sort()).toEqual(['B', 'C']);
   });
 
   it('offers find_place only with a Places lookup', async () => {

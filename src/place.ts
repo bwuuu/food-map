@@ -19,6 +19,8 @@ export interface Place {
   /** Set after visiting: T1 bad … T5 favourite. */
   rank: 'T1' | 'T2' | 'T3' | 'T4' | 'T5' | null;
   notes: string | null;
+  /** The agent (API key name) that put it on the map without me (#18). Missing for places I saved. */
+  addedBy?: string | null;
 }
 
 export interface Source {
@@ -42,6 +44,8 @@ export interface Draft {
   /** Background extraction (Sprint 2). "off" when no API keys are configured. */
   extraction: 'off' | 'pending' | 'done' | 'failed';
   suggestion: Suggestion | null;
+  /** An agent read it but couldn't confirm a pin: it waits for me, with the reason in suggestion.note (#18). */
+  flagged?: { by: string; at: string } | null;
 }
 
 /** What Claude and Google Places think the shared place is. Every field may be missing. */
@@ -88,6 +92,9 @@ export const RANKS: VisitInput['rank'][] = ['T1', 'T2', 'T3', 'T4', 'T5'];
 export const RANK_LABELS: Record<VisitInput['rank'], string> = {
   T1: 'Bad', T2: 'Not worth it', T3: 'Okay', T4: 'Would go back', T5: 'Favourite',
 };
+
+/** An agent's place I can still undo: not visited, and no other share merged in (#18). */
+export const isRemovable = (p: Place | undefined) => !!p?.addedBy && p.status === 'want' && p.sources.length === 1;
 
 export const SOURCE_TYPES: Source['type'][] = ['ig', 'youtube', 'friend', 'maps', 'web'];
 
