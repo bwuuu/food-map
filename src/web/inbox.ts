@@ -5,6 +5,7 @@ import { SOURCE_TYPES, guessSourceType, type Draft, type Place, type Source, typ
 import { parseCoords } from '../coords.ts';
 import { TAIPEI, addTiles, safeImage, safeUrl } from './shared.ts';
 
+const WAITING = '⏳ Waiting for the agent: it puts this on the map, or leaves it here with what’s missing. You can fill it in yourself now.';
 const SOURCE_NAMES: Record<Source['type'], string> = { ig: 'Instagram', youtube: 'YouTube', friend: 'Friend', maps: 'Google Maps', web: 'Web' };
 const pinIcon = L.divIcon({ className: 'pin', iconSize: [26, 26], iconAnchor: [13, 26] });
 
@@ -108,7 +109,13 @@ function card(draft: Draft) {
   if (fromShare) placePin(fromShare, true);
 
   /** Fill only what's still empty: never overwrite something I typed while Claude was reading. */
-  const applySuggestion = (sg: Suggestion) => {
+  const setStatus = (text: string, warn: boolean) => {
+    extractStatus.textContent = text;
+    extractStatus.classList.toggle('warn', warn);
+    extractStatus.hidden = false;
+  };
+
+  const applySuggestion = (sg: Suggestion, flagged: boolean) => {
     const fill = (input: HTMLInputElement | HTMLTextAreaElement, value: string | null) => {
       if (value && !input.value.trim()) input.value = value;
     };
@@ -121,22 +128,16 @@ function card(draft: Draft) {
     address = sg.address;
     googlePlaceId = sg.googlePlaceId;
     if (!pin && sg.lat !== null && sg.lng !== null) placePin([sg.lat, sg.lng], true);
-    const warn = sg.confidence === 'low' || sg.note;
     const existing = sg.googlePlaceId ? knownPlaces.find((p) => p.googlePlaceId === sg.googlePlaceId) : undefined;
-    extractStatus.textContent = existing
-      ? `📍 Already on your map as “${existing.name}”. Saving adds this share as another source.`
-      : warn ? `⚠️ ${sg.note ?? 'Not sure about this one. Check every field.'}` : '✨ Filled in from the share. Check it before saving.';
-    extractStatus.classList.toggle('warn', !!warn);
-    extractStatus.hidden = false;
+    if (existing) setStatus(`📍 Already on your map as “${existing.name}”. Saving adds this share as another source.`, false);
+    else if (flagged) setStatus(`⚠️ ${sg.note ?? 'The agent couldn’t place this one. Fill in what’s missing.'}`, true);
+    else setStatus(WAITING, false);
   };
 
+  // Since #18 an agent works every share: only a flagged one needs me (#21).
   const showExtraction = (d: Draft) => {
-    if (d.extraction === 'done' && d.suggestion) return applySuggestion(d.suggestion);
-    if (d.extraction === 'failed') {
-      extractStatus.textContent = 'Couldn’t read this share. Fill it in yourself.';
-      extractStatus.classList.add('warn');
-      extractStatus.hidden = false;
-    }
+    if (d.suggestion) return applySuggestion(d.suggestion, !!d.flagged);
+    setStatus(WAITING, false);
   };
 
   if (draft.extraction === 'pending') {
