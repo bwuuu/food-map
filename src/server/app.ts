@@ -3,7 +3,9 @@ import { bodyLimit } from 'hono/body-limit';
 import { serveStatic } from '@hono/node-server/serve-static';
 import { RANKS, SOURCE_TYPES, type SaveInput, type Source, type VisitInput } from '../place.ts';
 import { Unauthorized, type Identify } from './auth.ts';
-import type { Extract, ImageInput } from './extract.ts';
+import type { Extract, ImageInput, PlaceMatch } from './extract.ts';
+import { checkKey, failureLimiter } from './keys.ts';
+import { createMcp } from './mcp.ts';
 import { NotFound, createStore, imageExtension } from './store.ts';
 
 const MAX_UPLOAD = 20 * 1024 * 1024; // phone screenshots are 1–5 MB
@@ -46,9 +48,37 @@ export function parseVisitInput(body: unknown): VisitInput | string {
   return { rank: b.rank as VisitInput['rank'], note: text(b.note, 1000) };
 }
 
-export function createApp({ identify, dataDir, webDir, extract }: { identify: Identify; dataDir: string; webDir: string; extract?: Extract }) {
+export function createApp({ identify, dataDir, webDir, extract, findPlace }: {
+  identify: Identify;
+  dataDir: string;
+  webDir: string;
+  extract?: Extract;
+  findPlace?: (query: string) => Promise<PlaceMatch | null>;
+}) {
   const app = new Hono();
   const store = createStore(dataDir);
+  const mcp = createMcp({ store, dataDir, findPlace });
+  const failures = failureLimiter();
+
+  // Agents can't do the Access sign-in: /mcp has its own Access bypass, and an
+  // app-issued API key (keys.ts) is its only gate. Registered before the
+  // sign-in check, and it always answers, so nothing else is reachable this way.
+  app.all('/mcp', async (c) => {
+    // Cloudflare sets this and overwrites any value a client sends.
+    const addr = c.req.header('cf-connecting-ip') ?? 'direct';
+    if (failures.blocked(addr)) return c.json({ error: 'too many failed key attempts: wait a minute' }, 429);
+    const key = checkKey(c.req.header('authorization') ?? null, await store.keys());
+    if (typeof key === 'string') {
+      failures.fail(addr);
+      return c.json({ error: key }, 401);
+    }
+    // Stateless Streamable HTTP: no server-sent event stream to open.
+    if (c.req.method !== 'POST') return c.body(null, 405, { allow: 'POST' });
+    const body = await c.req.json().catch(() => undefined);
+    if (body === undefined) return c.json({ jsonrpc: '2.0', id: null, error: { code: -32700, message: 'parse error' } }, 400);
+    const answer = await mcp(body, key.scope);
+    return answer ? c.json(answer) : c.body(null, 202);
+  });
 
   // The manifest and icons are public: browsers and Chrome's WebAPK minting fetch
   // them without my cookie, and without them the app can't install as a share
