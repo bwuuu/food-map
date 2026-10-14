@@ -1,0 +1,1 @@
+{ "mcpServers": { "food-map": { "type": "http", "url": "${FOOD_MAP_URL}", "headers": { "Authorization": "Bearer ${FOOD_MAP_KEY}" } } } }

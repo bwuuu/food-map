@@ -62,6 +62,27 @@ The key is printed once: save it in Bitwarden (`food-map-mcp-<machine>`). Only i
 
 and start Claude Code with `FOOD_MAP_KEY="$(bw get password food-map-mcp-laptop)" claude`, so the key never sits in a file.
 
+### Fire-and-forget shares (#18)
+
+A share lands on a short "Saved" page and waits in `data/drafts/`. An agent then works the inbox over `/mcp`: it puts a share on the map only with a **confirmed pin** (a Google Maps link, or a Google Places match through `find_place`, so set `GOOGLE_PLACES_API_KEY` for Instagram screenshots), and otherwise flags it with a reason and what it read, for you to finish in the inbox. The server refuses any other pin. Places it adds say "Added by <key name>" in their popup, with **Remove** while nobody else has touched them.
+
+The agent is any MCP client with a write key, run on a schedule with this prompt:
+
+On the homelab, `scripts/work-inbox.sh` does that from cron. It starts Claude Code only when a share is waiting, so an empty inbox costs nothing. It talks to the container on `127.0.0.1:8088` directly. Cron can't unlock Bitwarden, so the key is copied once into a file only you can read:
+
+```bash
+docker compose exec app node src/server/key-cli.ts new homelab-cron    # save it in Bitwarden as food-map-mcp-homelab-cron
+mkdir -p ~/.config/food-map && (umask 077; bw get password food-map-mcp-homelab-cron > ~/.config/food-map/mcp-key)
+crontab -e
+```
+
+```cron
+PATH=/home/main/.local/bin:/usr/local/bin:/usr/bin:/bin
+*/15 * * * * /home/main/projects/food-map/scripts/work-inbox.sh >> /tmp/food-map-work-inbox.log 2>&1
+```
+
+Set `PATH` to wherever `which claude` points. A Google Maps share carries no why, so it comes back flagged with name and pin done: type the why and Save.
+
 ### Install on Android
 
 Install from **Chrome** (or Samsung Internet): ⋮ → **Install app**. It must appear in the app drawer, not just as a home-screen shortcut. **Brave can't do this:** on Android it only creates shortcuts, which never show up in the share sheet ([brave/brave-browser#7357](https://github.com/brave/brave-browser/issues/7357)). Brave can stay your default browser; only the install needs Chrome.

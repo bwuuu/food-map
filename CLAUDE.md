@@ -19,7 +19,7 @@ docker compose up -d --build   # production, 127.0.0.1:8088 (needs .env, see .en
 ## Layout
 
 - `src/place.ts`: the `Place` / `Source` model, shared by server, page and scripts
-- `src/server/`: Hono. `auth.ts` verifies the Cloudflare Access JWT on **every** route (pages included). `app.ts` has the routes and the input checks (`parseSaveInput`): `POST /share` (the Android share target), `/api/places`, `/api/drafts`, save and skip, `/images/*` from the data dir, and `dist/`. `mcp.ts` is the MCP endpoint for agents (`/mcp`, #19): tools wrap the same checks and store functions as the inbox. `keys.ts` + `key-cli.ts` issue its API keys. `store.ts` owns every file read and write (atomic, serialized). `extract.ts` runs after each share, in the background: Maps link → coordinates (only goo.gl is ever fetched), screenshot → Claude (`claude-opus-5-5`, structured output, refusal fallback), name → Google Places. Each step may fail alone
+- `src/server/`: Hono. `auth.ts` verifies the Cloudflare Access JWT on **every** route (pages included). `app.ts` has the routes and the input checks (`parseSaveInput`): `POST /share` (the Android share target; lands on `/saved`, #18), `/api/places`, `/api/drafts`, save and skip, `/images/*` from the data dir, and `dist/`. `mcp.ts` is the MCP endpoint for agents (`/mcp`, #19): tools wrap the same checks and store functions as the inbox. `keys.ts` + `key-cli.ts` issue its API keys. `store.ts` owns every file read and write (atomic, serialized). `extract.ts` runs after each share, in the background: Maps link → coordinates (only goo.gl is ever fetched), screenshot → Claude (`claude-opus-5-5`, structured output, refusal fallback), name → Google Places. Each step may fail alone
 - `src/web/`: two pages (Leaflet, vanilla TS). `index.html`/`main.ts` is the map (filters, Near me, visit form in the popup); `inbox.html`/`inbox.ts` turns shares into places. `public/pwa/manifest.webmanifest` holds the `share_target`. Shared text is untrusted: build DOM with `textContent`, or `esc()` in HTML strings
 - `src/coords.ts`: parses pasted coordinates and Google Maps URLs. Shared by the server (Maps links) and the inbox
 - `scripts/backup.sh <dir>`: dated archive of `data/`, keeps 30; run from host cron
@@ -33,6 +33,7 @@ docker compose up -d --build   # production, 127.0.0.1:8088 (needs .env, see .en
 - `/mcp` is the only other path without the Access sign-in, and it answers **only** to an app-issued API key (`keys.ts`; hashed, expiring, revocable). It never accepts the Access cookie instead, and nothing else is reachable through it.
 - The server must refuse to start without `ACCESS_TEAM_DOMAIN` + `ACCESS_AUD`. `DEV_ACCOUNT` is for local development only.
 - Coordinates keep full precision.
+- An agent puts a share on the map only with a confirmed pin (a Maps-link suggestion or a `googlePlaceId`); `resolve_draft` enforces it. Otherwise it flags the draft for me. Its places carry `addedBy`, and only those can be removed, while untouched.
 - A share whose `googlePlaceId` is already on the map merges into that place as another source; it never overwrites reviewed fields.
 - Extraction never blocks or loses a share, and the inbox never overwrites a field already typed.
 - API keys are optional, come from Bitwarden at deploy time, and are never committed or written to `.env`. Tests use fixtures, never live APIs.

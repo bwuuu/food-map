@@ -2,7 +2,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 // After Leaflet's CSS, so our popup and tile styles win.
 import './style.css';
-import { RANKS, RANK_LABELS, type Place, type Source } from '../place.ts';
+import { RANKS, RANK_LABELS, isRemovable, type Place, type Source } from '../place.ts';
 import { TAIPEI, addTiles, esc, safeImage, safeUrl } from './shared.ts';
 
 const SOURCE_LABELS: Record<Source['type'], string> = {
@@ -51,6 +51,7 @@ function popupHtml(p: Place) {
     ${p.sources.length ? `<h3>Saved because of</h3><ul>${p.sources.map(sourceHtml).join('')}</ul>` : ''}
     ${p.notes ? `<h3>Notes</h3><div class="notes">${esc(p.notes)}</div>` : ''}
     <a class="maps" href="${esc(maps)}" target="_blank" rel="noopener noreferrer">Open in Google Maps</a>
+    ${p.addedBy ? `<p class="added-by">Added by ${esc(p.addedBy)}${isRemovable(p) ? ` · <button type="button" class="remove" data-id="${esc(p.id)}">Remove</button>` : ''}</p>` : ''}
     <details class="visit">
       <summary>${p.status === 'visited' ? 'Update my visit' : 'I went here'}</summary>
       <form class="visit-form" data-id="${esc(p.id)}">
@@ -65,6 +66,20 @@ function popupHtml(p: Place) {
 
 // Popup HTML is rebuilt on every open, so its form is wired up here rather than once.
 map.on('popupopen', (e) => {
+  const remove = e.popup.getElement()?.querySelector<HTMLButtonElement>('.remove');
+  remove?.addEventListener('click', async () => {
+    if (!confirm('Remove this place? An agent added it; the share is not kept.')) return;
+    remove.disabled = true;
+    const res = await fetch(`/api/places/${remove.dataset.id}`, { method: 'DELETE' }).catch(() => null);
+    if (!res?.ok) {
+      remove.disabled = false;
+      remove.textContent = 'Could not remove. Try again';
+      return;
+    }
+    places = places.filter((p) => p.id !== remove.dataset.id);
+    map.closePopup();
+    render();
+  });
   const form = e.popup.getElement()?.querySelector<HTMLFormElement>('.visit-form');
   form?.addEventListener('submit', async (ev) => {
     ev.preventDefault();

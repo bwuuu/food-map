@@ -29,11 +29,12 @@ const save = (id: string, body: unknown) =>
 const valid = { name: '芮秋 Rachel', why: 'Dutch baby pancake', lat: 25.0512345, lng: 121.5612345, dishes: ['Dutch baby'], sourceType: 'ig', sourceDetail: '@foodie', category: 'Brunch', cuisine: null, address: 'Songshan District, Taipei', googlePlaceId: 'ChIJrachel' };
 
 describe('share → inbox → map', () => {
-  it('stores a shared screenshot as a draft and redirects to it', async () => {
+  it('stores a shared screenshot as a draft and lands on the Saved page (#18)', async () => {
     const res = await share({ text: 'Look at this https://www.instagram.com/p/abc/ wow' }, new File([JPEG], 's.jpg', { type: 'image/jpeg' }));
     expect(res.status).toBe(303);
     const [draft] = await drafts();
-    expect(res.headers.get('location')).toBe(`/inbox.html#${draft!.id}`);
+    expect(res.headers.get('location')).toBe('/saved');
+    expect(await (await app.request('/saved')).text()).toContain('Saved');
     // The link is pulled out of the text: Instagram doesn't fill `url`.
     expect(draft).toMatchObject({ url: 'https://www.instagram.com/p/abc/', image: `images/${draft!.id}.jpg` });
     expect(new Uint8Array(await readFile(join(dataDir, draft!.image!)))).toEqual(JPEG);

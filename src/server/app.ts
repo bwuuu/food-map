@@ -10,6 +10,21 @@ import { NotFound, createStore, imageExtension } from './store.ts';
 
 const MAX_UPLOAD = 20 * 1024 * 1024; // phone screenshots are 1–5 MB
 
+/** What the share sheet lands on. Static: nothing from the share is echoed back. */
+const SAVED_PAGE = `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1b1b1f"><title>Saved · Food Map</title><link rel="icon" href="/pwa/icon.svg">
+<style>
+  body { margin: 0; min-height: 100vh; display: grid; place-content: center; gap: 12px; padding: 24px; box-sizing: border-box;
+    background: #1b1b1f; color: #ececf1; font-family: system-ui, sans-serif; text-align: center; }
+  h1 { margin: 0; font-size: 24px; } p { margin: 0; color: #a1a1aa; }
+  nav { display: flex; gap: 24px; justify-content: center; margin-top: 12px; }
+  a { color: #8ab4f8; min-height: 44px; display: inline-flex; align-items: center; }
+</style></head>
+<body><h1>✓ Saved</h1><p>It’ll be on your map shortly. If it can’t be placed, it waits in the inbox.</p>
+<p>Press back to return to what you were doing.</p>
+<nav><a href="/">Map</a><a href="/inbox.html">Inbox</a></nav></body></html>`;
+
 const text = (v: unknown, max = 2000) => (typeof v === 'string' && v.trim() ? v.trim().slice(0, max) : null);
 
 /** Instagram and others put the link inside the shared text, not in `url`. */
@@ -76,7 +91,7 @@ export function createApp({ identify, dataDir, webDir, extract, findPlace }: {
     if (c.req.method !== 'POST') return c.body(null, 405, { allow: 'POST' });
     const body = await c.req.json().catch(() => undefined);
     if (body === undefined) return c.json({ jsonrpc: '2.0', id: null, error: { code: -32700, message: 'parse error' } }, 400);
-    const answer = await mcp(body, key.scope);
+    const answer = await mcp(body, key);
     return answer ? c.json(answer) : c.body(null, 202);
   });
 
@@ -130,8 +145,11 @@ export function createApp({ identify, dataDir, webDir, extract, findPlace }: {
           await store.finishExtraction(draft.id, null).catch(() => {});
         });
     }
-    return c.redirect(`/inbox.html#${draft.id}`, 303);
+    // Fire and forget (#18): an agent puts it on the map, or leaves it in the inbox for me.
+    return c.redirect('/saved', 303);
   });
+
+  app.get('/saved', (c) => c.html(SAVED_PAGE));
 
   app.post('/api/drafts/:id/save', async (c) => {
     const input = parseSaveInput(await c.req.json().catch(() => null));
@@ -143,6 +161,11 @@ export function createApp({ identify, dataDir, webDir, extract, findPlace }: {
     const visit = parseVisitInput(await c.req.json().catch(() => null));
     if (typeof visit === 'string') return c.json({ error: visit }, 400);
     return c.json(await store.recordVisit(c.req.param('id'), visit));
+  });
+
+  app.delete('/api/places/:id', async (c) => {
+    await store.removeAgentPlace(c.req.param('id'));
+    return c.body(null, 204);
   });
 
   app.delete('/api/drafts/:id', async (c) => {
