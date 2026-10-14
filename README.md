@@ -41,6 +41,27 @@ To restore: `docker compose down`, `tar -xzf <archive> -C data`, then `docker co
 
 Point a cloudflared public hostname at `http://localhost:8088` and protect it with a Cloudflare Access application. Then add a **second** Access application for the same hostname with path `pwa`, whose only policy is **Bypass → Everyone**. Browsers fetch the app manifest and icons without your login cookie, and without them the app can't install as a share target. Only those static files live under `/pwa/`.
 
+### Agents (MCP)
+
+Agents such as Claude Code work the inbox over MCP at `/mcp`: `list_inbox`, `get_draft` (with the screenshot), `resolve_draft`, `skip_draft`, `search_places`, `record_visit`, and `find_place` when the Google Places key is set. They go through the same checks as the inbox.
+
+`/mcp` takes an API key and nothing else. In Cloudflare, add a **third** Access application for the hostname with path `mcp` and a **Bypass → Everyone** policy; the app checks the key on every request. Create one key per machine, so each can be revoked alone:
+
+```bash
+docker compose exec app node src/server/key-cli.ts new claude-laptop   # add --read for a read-only key; --days N (default 90)
+docker compose exec app node src/server/key-cli.ts list
+docker compose exec app node src/server/key-cli.ts revoke <id>
+```
+
+The key is printed once: save it in Bitwarden (`food-map-mcp-<machine>`). Only its hash is stored. Then, in Claude Code's `.mcp.json`:
+
+```json
+{ "mcpServers": { "food-map": { "type": "http", "url": "https://food.ottormates.com/mcp",
+  "headers": { "Authorization": "Bearer ${FOOD_MAP_KEY}" } } } }
+```
+
+and start Claude Code with `FOOD_MAP_KEY="$(bw get password food-map-mcp-laptop)" claude`, so the key never sits in a file.
+
 ### Install on Android
 
 Install from **Chrome** (or Samsung Internet): ⋮ → **Install app**. It must appear in the app drawer, not just as a home-screen shortcut. **Brave can't do this:** on Android it only creates shortcuts, which never show up in the share sheet ([brave/brave-browser#7357](https://github.com/brave/brave-browser/issues/7357)). Brave can stay your default browser; only the install needs Chrome.

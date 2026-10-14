@@ -11,7 +11,7 @@ import { parseCoords, placeNameFromMapsUrl } from '../coords.ts';
 import type { Draft, Suggestion } from '../place.ts';
 
 export const MODEL = 'claude-opus-5-5';
-const TAIPEI = { lat: 25.05, lng: 121.55 };
+export const TAIPEI = { lat: 25.05, lng: 121.55 };
 
 export type ImageInput = { bytes: Uint8Array; mediaType: 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif' };
 export type Extract = (draft: Draft, image: ImageInput | null) => Promise<Suggestion>;

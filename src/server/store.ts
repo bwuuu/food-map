@@ -3,6 +3,7 @@
  *   places.json       the map
  *   drafts/<id>.json  shares waiting in the inbox
  *   images/           screenshots, from v1 and from shares
+ *   auth/keys.json    agent API keys, hashed
  *
  * Writes go to a temp file and are renamed over the target, so a crash never
  * leaves half a places.json. They also run one at a time, so two quick saves
@@ -13,6 +14,7 @@ import { randomBytes } from 'node:crypto';
 import { mkdir, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { Draft, Place, SaveInput, Suggestion, VisitInput } from '../place.ts';
+import type { KeyRecord } from './keys.ts';
 
 export const isDraftId = (id: string) => /^d_[0-9a-f]{12}$/.test(id);
 export const isPlaceId = (id: string) => /^p_[0-9a-f]{8}$/.test(id);
@@ -29,6 +31,7 @@ export function createStore(dataDir: string) {
   const placesFile = join(dataDir, 'places.json');
   const draftsDir = join(dataDir, 'drafts');
   const imagesDir = join(dataDir, 'images');
+  const keysFile = join(dataDir, 'auth', 'keys.json');
 
   let queue: Promise<unknown> = Promise.resolve();
   const serial = <T>(fn: () => Promise<T>): Promise<T> => {
@@ -179,6 +182,18 @@ export function createStore(dataDir: string) {
         const draft = await getDraft(id);
         if (draft.image) await rm(join(dataDir, draft.image), { force: true });
         await rm(draftFile(id));
+      }),
+
+    /** Agent API keys (auth/keys.json): hashes only, see keys.ts. Read on every /mcp request, so a revoke applies at once. */
+    keys: () => readJson<Record<string, KeyRecord>>(keysFile, {}),
+
+    updateKeys: (change: (keys: Record<string, KeyRecord>) => void) =>
+      serial(async () => {
+        const keys = await readJson<Record<string, KeyRecord>>(keysFile, {});
+        change(keys);
+        await mkdir(join(dataDir, 'auth'), { recursive: true });
+        await writeJson(keysFile, keys);
+        return keys;
       }),
   };
 }
